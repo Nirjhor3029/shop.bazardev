@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Seller\CategoryController;
 use App\Http\Controllers\Seller\OrderController;
@@ -51,6 +53,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('categories', [CategoryController::class, 'store'])->name('seller.categories.store');
         Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('seller.categories.destroy');
     });
+});
+
+Route::post('/demo-login', DemoLoginController::class)->middleware('throttle:20,1')->name('demo.login');
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('admin.index');
+    Route::post('/stores/{store}/status', [AdminController::class, 'status'])->name('admin.stores.status');
 });
 
 Route::middleware('auth')->group(function () {

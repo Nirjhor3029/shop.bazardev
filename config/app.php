@@ -13,6 +13,9 @@ return [
     |
     */
 
+    // Public demo: one-click demo seller on the login page. Never enable with real customer data.
+    'demo_mode' => (bool) env('DEMO_MODE', false),
+
     'name' => env('APP_NAME', 'Laravel'),
 
     /*

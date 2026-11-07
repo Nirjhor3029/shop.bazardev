@@ -14,8 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'seller.store' => \App\Http\Middleware\SetSellerStore::class,
+            'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'store.host' => \App\Http\Middleware\ResolveStoreFromHost::class,
         ]);
+        $middleware->web(append: [\App\Http\Middleware\ProtectDemoSession::class]);
         // The tenant must be known BEFORE route-model binding runs, or scoped lookups see no store.
         $middleware->prependToPriorityList(before: \Illuminate\Routing\Middleware\SubstituteBindings::class, prepend: \App\Http\Middleware\SetSellerStore::class);
         $middleware->prependToPriorityList(before: \Illuminate\Routing\Middleware\SubstituteBindings::class, prepend: \App\Http\Middleware\ResolveStoreFromHost::class);

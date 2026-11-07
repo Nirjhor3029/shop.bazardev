@@ -65,6 +65,7 @@ class SellerController extends Controller
     {
         $store = app('currentStore');
         abort_unless($request->user()->hasVerifiedEmail(), 403);
+        abort_if($store->status === 'suspended', 403, 'This store was suspended by the platform.');
         $store->update(['status' => $request->boolean('publish') ? 'published' : 'draft']);
 
         return back()->with('status', $store->status === 'published' ? 'Store is live.' : 'Store is now hidden.');
