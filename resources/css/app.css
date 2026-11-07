@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Brand focus color for every form control (Breeze/forms default is indigo). */
+[type='text']:focus, [type='email']:focus, [type='password']:focus, [type='number']:focus, [type='tel']:focus,
+[type='url']:focus, [type='search']:focus, textarea:focus, select:focus {
+    --tw-ring-color: #f0502a;
+    border-color: #f0502a;
+}
+[type='checkbox']:checked, [type='radio']:checked { background-color: #f0502a; }
+[type='checkbox']:focus, [type='radio']:focus { --tw-ring-color: #f0502a; }

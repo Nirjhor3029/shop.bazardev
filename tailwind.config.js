@@ -12,7 +12,11 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['"Hind Siliguri"', 'Inter', ...defaultTheme.fontFamily.sans],
+            },
+            colors: {
+                brand: { DEFAULT: '#f0502a', dark: '#d63e1a', soft: '#fff1ec' },
+                ink: '#0f172a',
             },
         },
     },

@@ -1,4 +1,6 @@
 <x-guest-layout>
+    <h1 class="text-2xl font-bold">{{ __('Log in') }}</h1>
+    <p class="text-sm text-gray-500 mb-6 mt-1">{{ __('market.hero_title') }}</p>
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -47,13 +49,13 @@
 
     @if (config('app.demo_mode'))
         <div class="mt-6 border-t pt-5">
-            <p class="text-sm font-medium text-gray-700">Just looking? Try a ready demo store.</p>
+            <p class="text-sm font-medium text-gray-700">{{ __('market.auth_demo') }}</p>
             <p class="mt-1 text-xs text-gray-500">One click, no sign-up. You get a full seller dashboard with products and payments set up. It is shared and resets every hour.</p>
             <form method="POST" action="{{ route('demo.login') }}" class="mt-3">
                 @csrf
-                <button class="w-full rounded-md bg-pink-600 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-700">Login as demo seller</button>
+                <button class="w-full rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark">Login as demo seller</button>
             </form>
-            <a href="https://demo.{{ config('shop.base_domain') }}" target="_blank" rel="noopener" class="mt-3 block text-center text-sm text-pink-700 underline">See how customers view the demo store</a>
+            <a href="https://demo.{{ config('shop.base_domain') }}" target="_blank" rel="noopener" class="mt-3 block text-center text-sm text-brand underline">See how customers view the demo store</a>
         </div>
     @endif
 </x-guest-layout>

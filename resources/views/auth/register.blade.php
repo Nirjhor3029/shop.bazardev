@@ -1,4 +1,6 @@
 <x-guest-layout>
+    <h1 class="text-2xl font-bold">{{ __('market.open_store') }}</h1>
+    <p class="text-sm text-gray-500 mb-6 mt-1">{{ __('market.cta_d') }}</p>
     <form method="POST" action="{{ route('register') }}">
         @csrf
 

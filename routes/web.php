@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DemoLoginController;
+use App\Http\Controllers\MarketController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Seller\AppearanceController;
 use App\Http\Controllers\Seller\CategoryController;
@@ -32,7 +33,9 @@ Route::domain('{store}.'.config('shop.base_domain'))
     });
 
 // MAIN DOMAIN: shop.bazardev.com
-Route::get('/', fn () => view('welcome'));
+Route::get('/', [MarketController::class, 'home'])->name('home');
+Route::get('/search', [MarketController::class, 'search'])->middleware('throttle:60,1')->name('search');
+Route::get('/lang/{locale}', [MarketController::class, 'lang'])->name('lang');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', fn () => redirect()->route('seller.dashboard'))->name('dashboard');
