@@ -1,7 +1,7 @@
 @extends('storefront.layout')
 @section('title', 'Order '.$order->number.' - '.$store->name)
 @section('content')
-<div class="bg-white rounded-lg shadow-sm p-6 max-w-2xl">
+<div class="sf-card p-6 max-w-2xl">
     <h1 class="text-2xl font-bold">Thank you, {{ $order->customer_name }}!</h1>
     <p class="mt-1 text-gray-600">Order <b>{{ $order->number }}</b> · status: <b>{{ $order->status }}</b></p>
     @if ($order->payment_method === 'cod')<p class="mt-3 text-sm">Pay <b>{{ $order->currency }} {{ number_format($order->total) }}</b> in cash when you receive the order.</p>

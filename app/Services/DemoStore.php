@@ -52,7 +52,7 @@ class DemoStore
     {
         DB::transaction(function () use ($u) {
             $store = (new StoreCreator)->create($u, self::SLUG, 'Demo Fashion House');
-            $store->update(['status' => 'published', 'settings' => array_merge($store->settings, ['color' => '#be185d', 'delivery_charge' => 60, 'free_delivery_over' => 2000])]);
+            $store->update(['status' => 'published', 'theme' => 'boutique', 'settings' => array_merge($store->settings, ['color' => '#be185d', 'delivery_charge' => 60, 'free_delivery_over' => 2000, 'look' => ['announcement' => 'Demo store: free delivery over 2000', 'hero_title' => 'Eid Collection', 'hero_text' => 'Panjabi, saree and more, ready to ship.', 'hero_button' => 'Shop now', 'about' => 'This is a demo shop built in one click.', 'phone' => '01700000000']])]);
 
             $prev = app()->bound('currentStore') ? app('currentStore') : null;
             app()->instance('currentStore', $store);

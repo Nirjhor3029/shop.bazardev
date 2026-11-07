@@ -3,7 +3,7 @@
 @section('content')
 <h1 class="text-2xl font-bold mb-4">Checkout</h1>
 <div class="grid md:grid-cols-2 gap-6" x-data="{ pm: '{{ old('payment_method', $methods->first()?->type) }}' }">
-<form method="POST" action="/checkout" class="bg-white rounded-lg shadow-sm p-5 space-y-4">@csrf
+<form method="POST" action="/checkout" class="sf-card p-5 space-y-4">@csrf
     @error('cart')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
     @foreach ([['name','Your name','text'],['phone','Mobile number (01XXXXXXXXX)','tel'],['email','Email (optional)','email']] as [$f,$l,$t])
         <div><label class="block text-sm font-medium">{{ $l }}</label><input type="{{ $t }}" name="{{ $f }}" value="{{ old($f) }}" @if ($f !== 'email') required @endif class="mt-1 border-gray-300 rounded-md w-full">@error($f)<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
@@ -30,7 +30,7 @@
     </div>
     <button class="text-white px-6 py-3 rounded-md w-full" style="background: {{ $color }}">Place order</button>
 </form>
-<div class="bg-white rounded-lg shadow-sm p-5 h-fit">
+<div class="sf-card p-5 h-fit">
     <h2 class="font-semibold mb-3">Order summary</h2>
     @foreach ($lines as $l)<div class="flex justify-between text-sm py-1"><span>{{ $l['product']->name }} × {{ $l['qty'] }}</span><span>{{ number_format($l['total']) }}</span></div>@endforeach
     <hr class="my-3">

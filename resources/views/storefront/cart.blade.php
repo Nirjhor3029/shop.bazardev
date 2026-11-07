@@ -5,7 +5,7 @@
 @if ($lines->isEmpty())
     <p class="text-gray-500">Your cart is empty. <a class="underline" href="/">Continue shopping</a></p>
 @else
-    <form method="POST" action="/cart/update" class="bg-white rounded-lg shadow-sm divide-y">@csrf
+    <form method="POST" action="/cart/update" class="sf-card divide-y">@csrf
         @foreach ($lines as $l)
             <div class="p-4 flex items-center gap-4">
                 <div class="w-16 h-16 bg-gray-100 rounded overflow-hidden shrink-0">@if ($l['product']->coverUrl())<img src="{{ $l['product']->coverUrl() }}" class="w-full h-full object-cover" alt="">@endif</div>

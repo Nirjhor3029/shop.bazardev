@@ -5,7 +5,6 @@
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
         <form method="POST" action="{{ route('seller.settings.update') }}" class="bg-white shadow-sm sm:rounded-lg p-6 space-y-5">@csrf @method('PUT')
             <div><label class="block text-sm font-medium">Store name</label><input name="name" value="{{ old('name', $store->name) }}" required class="mt-1 border-gray-300 rounded-md w-full"></div>
-            <div><label class="block text-sm font-medium">Store color</label><input type="color" name="color" value="{{ old('color', $store->settings['color'] ?? '#4f46e5') }}" class="mt-1 h-10 w-20"></div>
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium">Delivery charge</label><input type="number" step="1" min="0" name="delivery_charge" value="{{ old('delivery_charge', $store->settings['delivery_charge'] ?? 0) }}" required class="mt-1 border-gray-300 rounded-md w-full"></div>
                 <div><label class="block text-sm font-medium">Free delivery over (0 = never)</label><input type="number" step="1" min="0" name="free_delivery_over" value="{{ old('free_delivery_over', $store->settings['free_delivery_over'] ?? 0) }}" class="mt-1 border-gray-300 rounded-md w-full"></div>

@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Seller\AppearanceController;
 use App\Http\Controllers\Seller\CategoryController;
 use App\Http\Controllers\Seller\OrderController;
 use App\Http\Controllers\Seller\SettingsController;
@@ -47,6 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('seller.orders.show');
         Route::post('orders/{order}/status', [OrderController::class, 'status'])->name('seller.orders.status');
         Route::post('orders/{order}/payment', [OrderController::class, 'payment'])->name('seller.orders.payment');
+        Route::get('appearance', [AppearanceController::class, 'edit'])->name('seller.appearance.edit');
+        Route::post('appearance', [AppearanceController::class, 'update'])->name('seller.appearance.update');
         Route::get('settings', [SettingsController::class, 'edit'])->name('seller.settings.edit');
         Route::put('settings', [SettingsController::class, 'update'])->name('seller.settings.update');
         Route::get('categories', [CategoryController::class, 'index'])->name('seller.categories.index');
