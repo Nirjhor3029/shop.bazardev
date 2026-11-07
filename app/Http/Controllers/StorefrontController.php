@@ -22,9 +22,14 @@ class StorefrontController extends Controller
 
     public function product(string $slug)
     {
+        $store = app('currentStore');
+        $product = Product::with('images')->where('is_active', true)->where('slug', $slug)->firstOrFail();
+        $related = Product::with('images')->where('is_active', true)->where('id', '!=', $product->id)
+            ->orderByRaw('CASE WHEN category_id = ? THEN 0 ELSE 1 END', [$product->category_id])->latest()->limit(4)->get();
+
         return view('storefront.product', [
-            'store' => app('currentStore'),
-            'product' => Product::with('images')->where('is_active', true)->where('slug', $slug)->firstOrFail(),
+            'store' => $store, 'product' => $product, 'related' => $related,
+            'methods' => \App\Models\PaymentMethod::where('is_active', true)->pluck('type'),
         ]);
     }
 }

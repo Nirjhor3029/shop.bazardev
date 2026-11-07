@@ -21,6 +21,11 @@
                     @if ($look['banner'])<img src="{{ $store->fileUrl($look['banner']) }}" class="h-12 my-2 rounded"><label class="text-xs"><input type="checkbox" name="remove_banner" value="1"> remove</label>@endif
                     <input type="file" name="banner" accept="image/jpeg,image/png,image/webp" class="mt-1 text-sm">@error('banner')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div><label class="block text-sm font-medium">Store language</label><select name="lang" class="mt-1 border-gray-300 rounded-md w-full"><option value="bn" @selected(old('lang', $look['lang']) === 'bn')>বাংলা</option><option value="en" @selected(old('lang', $look['lang']) === 'en')>English</option></select></div>
+                <div><label class="block text-sm font-medium">WhatsApp number (customers can order here)</label><input name="whatsapp" value="{{ old('whatsapp', $look['whatsapp']) }}" placeholder="01XXXXXXXXX" class="mt-1 border-gray-300 rounded-md w-full">@error('whatsapp')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+            </div>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="digits" value="1" class="rounded" @checked(old('digits', $look['digits']))> Show prices in Bangla digits (৳১,৫০০)</label>
             <div><label class="block text-sm font-medium">Announcement bar (optional)</label><input name="announcement" maxlength="140" value="{{ old('announcement', $look['announcement']) }}" placeholder="Free delivery over 2000!" class="mt-1 border-gray-300 rounded-md w-full"></div>
             <div class="border-t pt-4 space-y-3"><h3 class="font-semibold">Banner text</h3>
                 <input name="hero_title" maxlength="80" value="{{ old('hero_title', $look['hero_title']) }}" placeholder="Big title (default: store name)" class="border-gray-300 rounded-md w-full">

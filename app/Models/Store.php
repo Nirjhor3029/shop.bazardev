@@ -40,7 +40,7 @@ class Store extends Model
         $defaults = [
             'font' => 'sans', 'announcement' => '', 'hero_title' => '', 'hero_text' => '', 'hero_button' => 'Shop now',
             'about' => '', 'phone' => '', 'email' => '', 'address' => '', 'facebook' => '',
-            'logo' => null, 'banner' => null,
+            'logo' => null, 'banner' => null, 'whatsapp' => '', 'digits' => true, 'lang' => 'bn',
             'sections' => collect(self::SECTIONS)->keys()->map(fn ($t) => ['type' => $t, 'on' => true])->all(),
         ];
 

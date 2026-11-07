@@ -27,7 +27,7 @@ class CartController extends Controller
         abort_if($p->stock < 1, 422, 'Out of stock.');
         $this->cart()->add($p->id, $data['qty'] ?? 1);
 
-        return redirect('/cart')->with('status', 'Added to cart.');
+        return redirect('/cart')->with('status', __('store.added'));
     }
 
     public function update(Request $request)
