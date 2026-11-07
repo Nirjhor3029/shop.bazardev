@@ -171,4 +171,21 @@ class OrderFlowTest extends TestCase
         app()->forgetInstance('currentStore');
         $this->get($this->url($a, '/cart'))->assertOk();
     }
+
+    public function test_new_order_is_unseen_until_seller_opens_it(): void
+    {
+        $a = $this->seller('alpha');
+        $this->withCart($a, [$this->product($a)->id => 1])->post($this->url($a, '/checkout'), $this->form());
+        $o = Order::withoutGlobalScopes()->firstOrFail();
+        $this->assertNull($o->seller_seen_at);
+
+        $this->app['auth']->forgetGuards();
+        app()->forgetInstance('currentStore');
+        $this->actingAs($a)->get(route('seller.orders.index'))->assertOk()->assertSee('1 new');
+        app()->forgetInstance('currentStore');
+        $this->actingAs($a)->get(route('seller.orders.show', $o->id))->assertOk();
+        $this->assertNotNull($o->fresh()->seller_seen_at);
+        app()->forgetInstance('currentStore');
+        $this->actingAs($a)->get(route('seller.orders.index'))->assertOk()->assertDontSee('1 new');
+    }
 }

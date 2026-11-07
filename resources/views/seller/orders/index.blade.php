@@ -9,7 +9,7 @@
         <div class="bg-white shadow-sm sm:rounded-lg divide-y">
             @forelse ($orders as $o)
                 <a href="{{ route('seller.orders.show', $o) }}" class="flex items-center justify-between gap-3 p-4 hover:bg-gray-50">
-                    <div class="min-w-0"><p class="font-medium">{{ $o->number }} · {{ $o->customer_name }}</p>
+                    <div class="min-w-0"><p class="font-medium">{{ $o->number }} · {{ $o->customer_name }} @if (! $o->seller_seen_at)<span class="text-xs bg-red-600 text-white rounded px-1">new</span>@endif</p>
                         <p class="text-sm text-gray-500">{{ $o->created_at->diffForHumans() }} · {{ strtoupper($o->payment_method) }} · pay: {{ $o->payment_status }}</p></div>
                     <div class="text-right shrink-0"><p class="font-semibold">{{ number_format($o->total) }}</p><p class="text-xs text-gray-500">{{ $o->status }}</p></div>
                 </a>

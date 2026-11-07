@@ -20,6 +20,9 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
+        if (! $order->seller_seen_at) {
+            $order->forceFill(['seller_seen_at' => now()])->save();
+        }
         return view('seller.orders.show', ['order' => $order->load('items')]);
     }
 
