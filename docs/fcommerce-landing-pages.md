@@ -155,5 +155,16 @@ Route::post('/lp/{slug}/order', [LandingPageController::class, 'order'])->middle
 - **Facebook ad চালানো সেলারের দায়িত্ব** — platform ad spend/campaign manage করবে না, শুধু conversion-ready page + tracking সাপ্লাই করবে। এটা scope-এ স্পষ্ট থাকা দরকার যাতে পরে confusion না হয়।
 - **Courier API-এর জন্য official docs এখনো পড়া হয়নি** — Phase 3 শুরুর আগে Steadfast/Pathao/RedX-এর actual developer portal থেকে ডকুমেন্টেশন verify করা দরকার (এই রিসার্চে vendor portal URL-এর আন্দাজ পাওয়া গেছে, কিন্তু official spec না)।
 
----
-*এই ডকুমেন্ট একটা plan/proposal — কোনো কোড এখনো লেখা হয়নি। পরবর্তী কথোপকথনে M1 থেকে implementation শুরু করা যায়।*
+## ১১. যা যা বাদ থাকলো (M1-M4 ship হওয়ার পর, 2026-11-08)
+
+| # | কী বাদ আছে | কেন | করতে হলে কী লাগবে |
+|---|---|---|---|
+| 1 | **Courier API (Steadfast/Pathao/RedX)** | কোনো verified official API doc নেই, শুধু unverified community SDK — ভুল spec-এ শুধু ফেইল না, real parcel হারানোর ঝুঁকি | Steadfast merchant account registration (portal.packzy.com) করে dashboard থেকে real docs, বা তাদের support থেকে সরাসরি spec |
+| 2 | **SSLCommerz real end-to-end test** | কোড official doc-এর বিপরীতে বানানো ও `Http::fake()` দিয়ে verify করা হয়েছে, কিন্তু আসল sandbox account-এ কখনো চালিয়ে দেখা হয়নি | sslcommerz.com-এ register করে sandbox Store ID/Password নিয়ে একটা test order চালানো |
+| 3 | **Structured BD address (Division → District → Upazila dropdown)** | BD F-commerce-এর কমন কনভেনশন, কিন্তু আমরা বর্তমান একটাই free-text address field রেখে দিয়েছি (রিস্ক/স্কোপ কমানোর জন্য V1-এ) | নতুন address dropdown data + migration, checkout/landing form আপডেট |
+| 4 | **Countdown / urgency element** ("আজ ৫০+ বিক্রি হয়েছে" জাতীয়) | সাধারণ landing-page literature-এ প্রচলিত কিন্তু BD-specific প্রমাণিত ইমপ্যাক্ট ডেটা পাওয়া যায়নি, over-promise এড়াতে V1-এ রাখা হয়নি | শুধু UI addition — ডেটা সোর্স (অর্ডার কাউন্ট/টাইমার) ঠিক করলেই করা যায়, risk কম |
+| 5 | **"COD correction" CAPI event** | প্রতিযোগী tool (Selorax)-এ আছে — পরে কোনো landing-page order cancel/return হলে Meta-কে একটা correction signal পাঠানো, যাতে conversion ডেটা নির্ভুল থাকে | `OrderPlacer::changeStatus()`-এ hook করে cancelled landing orders-এর জন্য দ্বিতীয় CAPI event পাঠানো লাগবে |
+| 6 | **ছোট/alias URL** (যেমন `shop.bazardev.com/go/{code}`) | subdomain URL (`store.shop.bazardev.com/lp/{slug}`) ইতিমধ্যে brand-consistent, alias optional ছিল | নতুন redirect route + short-code generator |
+| 7 | **bKash/Nagad/Rocket direct merchant API** | এটা কোনো "বাদ" না, permanent সীমাবদ্ধতা — marketplace মডেলে per-seller Bangladesh Bank approval বাস্তবসম্মত না। SSLCommerz-ই স্থায়ী সমাধান | — (কখনো আমাদের নিজেদের নামে হবে না) |
+
+৭ নং ছাড়া বাকি সব technically করা সম্ভব, শুধু স্কোপ/ঝুঁকি কমানোর জন্য V1-এ রাখা হয়নি। কোনোটা নিয়ে এগোতে চাইলে বলো।
