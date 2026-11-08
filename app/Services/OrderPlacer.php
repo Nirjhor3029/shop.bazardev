@@ -47,7 +47,9 @@ class OrderPlacer
     public function placeSingle(Store $store, Product $product, int $qty, array $d, ?LandingPage $landingPage = null, ?float $comboPrice = null): Order
     {
         $order = $this->createOrder($store, [$product->id => $qty], $d, $landingPage, $comboPrice);
-        if ($landingPage && $landingPage->pixel_id && $landingPage->capi_token) {
+        // sslcommerz hasn't been paid yet at this point - SslcommerzGateway::confirm() dispatches this
+        // itself once the payment is actually validated, so a failed/abandoned payment is never counted.
+        if ($order->payment_method !== 'sslcommerz' && $landingPage && $landingPage->pixel_id && $landingPage->capi_token) {
             SendMetaPurchaseEvent::dispatch($order->id);
         }
 
@@ -61,7 +63,7 @@ class OrderPlacer
             if (! $method) {
                 throw ValidationException::withMessages(['payment_method' => 'This payment method is not available.']);
             }
-            $manual = $method->type !== 'cod';
+            $manual = in_array($method->type, ['bkash', 'nagad', 'rocket'], true);
             if ($manual && (blank($d['trx_id'] ?? null) || blank($d['payer_number'] ?? null))) {
                 throw ValidationException::withMessages(['trx_id' => 'Send the money first, then enter the Transaction ID and your number.']);
             }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Seller\OrderController;
 use App\Http\Controllers\Seller\SettingsController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\SslcommerzController;
 use App\Http\Controllers\StorefrontController;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -34,6 +35,10 @@ Route::domain('{store}.'.config('shop.base_domain'))
         Route::get('/checkout', [CheckoutController::class, 'show']);
         Route::post('/checkout', [CheckoutController::class, 'place'])->middleware('throttle:10,1');
         Route::get('/order/{token}', [CheckoutController::class, 'order'])->where('token', '[A-Za-z0-9]{40}');
+        Route::match(['get', 'post'], '/sslcommerz/success/{token}', [SslcommerzController::class, 'success'])->where('token', '[A-Za-z0-9]{40}');
+        Route::match(['get', 'post'], '/sslcommerz/fail/{token}', [SslcommerzController::class, 'fail'])->where('token', '[A-Za-z0-9]{40}');
+        Route::match(['get', 'post'], '/sslcommerz/cancel/{token}', [SslcommerzController::class, 'cancel'])->where('token', '[A-Za-z0-9]{40}');
+        Route::post('/sslcommerz/ipn', [SslcommerzController::class, 'ipn']);
     });
 
 // MAIN DOMAIN: shop.bazardev.com

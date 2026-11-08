@@ -22,6 +22,16 @@
                 @endforeach
                 <p class="mt-2 text-xs text-gray-500">A method is shown only when it is ticked and has a number.</p>
             </div>
+            <div class="border-t pt-4"><h3 class="font-semibold">SSLCommerz (real-time bKash/Nagad/Rocket/card payment)</h3>
+                @php $ssl = $methods['sslcommerz'] ?? null; @endphp
+                <p class="mt-1 text-xs text-gray-500">Use your own SSLCommerz merchant account - register at sslcommerz.com to get a Store ID and Store Password. We never see or hold the money; SSLCommerz pays it to your account directly.</p>
+                <div class="mt-3 p-3 border rounded space-y-2">
+                    <label class="flex items-center gap-2"><input type="checkbox" name="sslcommerz_on" value="1" class="rounded" @checked(old('sslcommerz_on', $ssl?->is_active))> Enable SSLCommerz</label>
+                    <input name="sslcommerz_store_id" value="{{ old('sslcommerz_store_id', $ssl?->config['store_id'] ?? '') }}" placeholder="Store ID" class="border-gray-300 rounded-md w-full">
+                    <input name="sslcommerz_store_passwd" type="password" placeholder="{{ $ssl?->secret ? 'Saved - leave blank to keep it' : 'Store Password' }}" class="border-gray-300 rounded-md w-full">
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="sslcommerz_sandbox" value="1" class="rounded" @checked(old('sslcommerz_sandbox', $ssl?->config['sandbox'] ?? true))> Sandbox / test mode (uncheck once you have a live account)</label>
+                </div>
+            </div>
             <x-primary-button>Save</x-primary-button>
         </form>
     </div></div>

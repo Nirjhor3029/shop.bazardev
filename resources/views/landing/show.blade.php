@@ -112,12 +112,13 @@ body { background:#f9fafb; color:#111827; font-family: 'Hind Siliguri', ui-sans-
                     <span class="font-medium">{{ __('store.'.$m->type) }}</span>
                     <span class="block text-sm text-gray-600 ml-6" x-show="pm === '{{ $m->type }}'">
                         @if ($m->type === 'cod'){{ $m->instructions ?: ($isCombo ? __('store.pay_cod_note_generic') : __('store.pay_cod_note', ['amount' => $price])) }}
+                        @elseif ($m->type === 'sslcommerz'){{ __('store.pay_gateway_note') }}
                         @else{{ $isCombo ? __('store.send_money_generic', ['number' => \App\Support\Fmt::digits($m->number)]) : __('store.send_money', ['amount' => $price, 'number' => \App\Support\Fmt::digits($m->number)]) }} {{ $m->instructions }}@endif
                     </span>
                 </label>
             @endforeach
             @error('payment_method')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
-            <div x-show="pm !== 'cod'" class="space-y-3 mt-3">
+            <div x-show="pm !== 'cod' && pm !== 'sslcommerz'" class="space-y-3 mt-3">
                 <div><label class="block text-sm font-medium" for="f-trx">{{ __('store.trx_id') }}</label><input id="f-trx" name="trx_id" value="{{ old('trx_id') }}" maxlength="40" class="mt-1 border-gray-300 rounded-lg w-full">@error('trx_id')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
                 <div><label class="block text-sm font-medium" for="f-payer">{{ __('store.sent_from') }}</label><input id="f-payer" name="payer_number" value="{{ old('payer_number') }}" class="mt-1 border-gray-300 rounded-lg w-full">@error('payer_number')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             </div>

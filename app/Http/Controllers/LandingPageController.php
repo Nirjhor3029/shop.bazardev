@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LandingPage;
 use App\Models\PaymentMethod;
 use App\Services\OrderPlacer;
+use App\Services\SslcommerzGateway;
 use Illuminate\Http\Request;
 
 class LandingPageController extends Controller
@@ -23,7 +24,7 @@ class LandingPageController extends Controller
         ]);
     }
 
-    public function order(Request $request, string $slug, OrderPlacer $placer)
+    public function order(Request $request, string $slug, OrderPlacer $placer, SslcommerzGateway $gateway)
     {
         $store = app('currentStore');
         $lp = LandingPage::where('slug', $slug)->where('is_published', true)->firstOrFail();
@@ -35,7 +36,7 @@ class LandingPageController extends Controller
             'email' => ['nullable', 'email', 'max:150'],
             'address' => ['required', 'string', 'max:500'],
             'note' => ['nullable', 'string', 'max:500'],
-            'payment_method' => ['required', 'in:cod,bkash,nagad,rocket'],
+            'payment_method' => ['required', 'in:cod,bkash,nagad,rocket,sslcommerz'],
             'trx_id' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9]+$/'],
             'payer_number' => ['nullable', 'regex:/^(?:\+?88)?01[3-9]\d{8}$/'],
             'fbclid' => ['nullable', 'string', 'max:120'],
@@ -53,6 +54,13 @@ class LandingPageController extends Controller
             : [(int) $data['qty'], null];
 
         $order = $placer->placeSingle($store, $lp->product, $qty, $data, $lp, $comboPrice);
+
+        if ($order->payment_method === 'sslcommerz') {
+            $method = PaymentMethod::where('type', 'sslcommerz')->first();
+            if ($method && ($url = $gateway->initiate($store, $method, $order))) {
+                return redirect()->away($url);
+            }
+        }
 
         return redirect('/order/'.$order->token);
     }

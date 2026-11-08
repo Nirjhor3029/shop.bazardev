@@ -30,6 +30,10 @@ class SettingsController extends Controller
             'pay' => ['nullable', 'array'],
             'pay.*.number' => ['nullable', 'regex:/^(?:\+?88)?01[3-9]\d{8}$/'],
             'pay.*.instructions' => ['nullable', 'string', 'max:300'],
+            'sslcommerz_on' => ['nullable', 'boolean'],
+            'sslcommerz_store_id' => ['nullable', 'string', 'max:60'],
+            'sslcommerz_store_passwd' => ['nullable', 'string', 'max:200'],
+            'sslcommerz_sandbox' => ['nullable', 'boolean'],
         ], ['pay.*.number.regex' => 'Enter a valid mobile number like 01712345678.']);
 
         $store->update([
@@ -50,6 +54,15 @@ class SettingsController extends Controller
                 'is_active' => $request->boolean("pay_on.$type") && filled($number), // a method without a number cannot be on
             ]);
         }
+
+        $storeId = $data['sslcommerz_store_id'] ?? null;
+        $ssl = PaymentMethod::firstOrNew(['type' => 'sslcommerz']);
+        $ssl->config = ['store_id' => $storeId, 'sandbox' => $request->boolean('sslcommerz_sandbox')];
+        if (filled($data['sslcommerz_store_passwd'] ?? null)) {
+            $ssl->secret = $data['sslcommerz_store_passwd']; // only overwrite the saved password when a new one was actually typed
+        }
+        $ssl->is_active = $request->boolean('sslcommerz_on') && filled($storeId) && filled($ssl->secret);
+        $ssl->save();
 
         return back()->with('status', 'Settings saved.');
     }

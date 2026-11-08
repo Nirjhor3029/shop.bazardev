@@ -6,6 +6,8 @@ return [
     'related' => 'You may also like', 'share' => 'Share', 'copy_link' => 'Copy link', 'copied' => 'Link copied',
     'delivery' => 'Delivery', 'delivery_charge' => ':amount', 'free_over' => 'free over :amount', 'free_delivery' => 'Free delivery', 'pay' => 'Payment',
     'cod' => 'Cash on delivery', 'bkash' => 'bKash', 'nagad' => 'Nagad', 'rocket' => 'Rocket',
+    'sslcommerz' => 'Online Payment (bKash/Nagad/Rocket/Card)', 'pay_gateway_note' => 'You will be redirected to a secure payment page to complete your payment.',
+    'pay_gateway_unpaid' => 'Payment is not complete yet. Please try again or contact the seller.', 'pay_gateway_paid' => 'Paid online successfully.',
     'about_us' => 'About us', 'phone' => 'Phone', 'email' => 'Email', 'address' => 'Address', 'facebook' => 'Facebook page', 'made_with' => 'Made with Bazardev Shop',
     'cart_title' => 'Your cart', 'cart_empty' => 'Your cart is empty.', 'continue' => 'Continue shopping', 'update_cart' => 'Update cart', 'subtotal' => 'Subtotal', 'checkout' => 'Checkout',
     'added' => 'Added to cart.', 'name' => 'Your name', 'mobile' => 'Mobile number (01XXXXXXXXX)', 'email_opt' => 'Email (optional)', 'full_address' => 'Full address', 'note_opt' => 'Note (optional)',
