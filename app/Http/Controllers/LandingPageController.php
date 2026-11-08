@@ -26,9 +26,9 @@ class LandingPageController extends Controller
     {
         $store = app('currentStore');
         $lp = LandingPage::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $isCombo = $lp->template === 'combo' && ! empty($lp->combos);
 
-        $data = $request->validate([
-            'qty' => ['required', 'integer', 'min:1', 'max:'.min(99, max(1, $lp->product->stock))],
+        $rules = [
             'name' => ['required', 'string', 'max:100'],
             'phone' => ['required', 'regex:/^(?:\+?88)?01[3-9]\d{8}$/'],
             'email' => ['nullable', 'email', 'max:150'],
@@ -37,9 +37,19 @@ class LandingPageController extends Controller
             'payment_method' => ['required', 'in:cod,bkash,nagad,rocket'],
             'trx_id' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9]+$/'],
             'payer_number' => ['nullable', 'regex:/^(?:\+?88)?01[3-9]\d{8}$/'],
-        ], ['phone.regex' => 'Enter a valid mobile number like 01712345678.', 'payer_number.regex' => 'Enter the number you sent money from.']);
+        ];
+        $rules[$isCombo ? 'combo' : 'qty'] = $isCombo
+            ? ['required', 'integer', 'min:0', 'max:'.(count($lp->combos) - 1)]
+            : ['required', 'integer', 'min:1', 'max:'.min(99, max(1, $lp->product->stock))];
 
-        $order = $placer->placeSingle($store, $lp->product, (int) $data['qty'], $data, $lp);
+        $data = $request->validate($rules, ['phone.regex' => 'Enter a valid mobile number like 01712345678.', 'payer_number.regex' => 'Enter the number you sent money from.']);
+
+        // combo price/qty always come from the seller's own saved rows - never from the request.
+        [$qty, $comboPrice] = $isCombo
+            ? [(int) $lp->combo((int) $data['combo'])['qty'], (float) $lp->combo((int) $data['combo'])['price']]
+            : [(int) $data['qty'], null];
+
+        $order = $placer->placeSingle($store, $lp->product, $qty, $data, $lp, $comboPrice);
 
         return redirect('/order/'.$order->token);
     }

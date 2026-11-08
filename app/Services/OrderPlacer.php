@@ -38,15 +38,19 @@ class OrderPlacer
         return $order;
     }
 
-    /** Buy-now flow for a single product (landing pages): no session cart involved. */
-    public function placeSingle(Store $store, Product $product, int $qty, array $d, ?LandingPage $landingPage = null): Order
+    /**
+     * Buy-now flow for a single product (landing pages): no session cart involved.
+     * $comboPrice, when given, is a seller-configured bundle total for this exact $qty
+     * (e.g. "2 for 900"), looked up server-side - never a price the buyer can submit.
+     */
+    public function placeSingle(Store $store, Product $product, int $qty, array $d, ?LandingPage $landingPage = null, ?float $comboPrice = null): Order
     {
-        return $this->createOrder($store, [$product->id => $qty], $d, $landingPage?->id);
+        return $this->createOrder($store, [$product->id => $qty], $d, $landingPage?->id, $comboPrice);
     }
 
-    private function createOrder(Store $store, array $raw, array $d, ?int $landingPageId): Order
+    private function createOrder(Store $store, array $raw, array $d, ?int $landingPageId, ?float $comboPrice = null): Order
     {
-        return DB::transaction(function () use ($store, $raw, $d, $landingPageId) {
+        return DB::transaction(function () use ($store, $raw, $d, $landingPageId, $comboPrice) {
             $method = PaymentMethod::where('type', $d['payment_method'])->where('is_active', true)->first();
             if (! $method) {
                 throw ValidationException::withMessages(['payment_method' => 'This payment method is not available.']);
@@ -65,8 +69,8 @@ class OrderPlacer
                 if (! $p || $p->stock < $qty) {
                     throw ValidationException::withMessages(['cart' => ($p?->name ?? 'A product').' is out of stock or has less stock than you asked.']);
                 }
-                $price = (float) $p->currentPrice();
-                $line = round($price * $qty, 2);
+                $line = $comboPrice !== null ? round($comboPrice, 2) : round((float) $p->currentPrice() * $qty, 2);
+                $price = round($line / $qty, 2);
                 $subtotal += $line;
                 $rows[] = [$p, $qty, $price, $line];
             }

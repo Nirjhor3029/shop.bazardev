@@ -41,7 +41,7 @@ class LandingPageTest extends TestCase
 
         $this->actingAs($u)->get(route('seller.landing.create'))->assertOk()->assertSee('Choose a product', false);
         $this->actingAs($u)->post(route('seller.landing.store'), [
-            'product_id' => $p->id, 'headline' => 'Eid Combo Offer', 'subheadline' => 'Limited stock',
+            'product_id' => $p->id, 'template' => 'classic', 'headline' => 'Eid Combo Offer', 'subheadline' => 'Limited stock',
             'benefits' => "Free delivery\n7-day return", 'is_published' => '1',
         ])->assertRedirect(route('seller.landing.index'));
 
@@ -59,7 +59,7 @@ class LandingPageTest extends TestCase
         $foreign = Product::withoutGlobalScopes()->where('store_id', '!=', $a->store->id)->firstOrFail();
 
         $this->actingAs($a)->post(route('seller.landing.store'), [
-            'product_id' => $foreign->id, 'headline' => 'Steal', 'is_published' => '1',
+            'product_id' => $foreign->id, 'template' => 'classic', 'headline' => 'Steal', 'is_published' => '1',
         ])->assertSessionHasErrors('product_id');
     }
 
@@ -79,7 +79,7 @@ class LandingPageTest extends TestCase
         $u = $this->seller();
         $p = $this->product($u); // price 500, stock 10
         $this->actingAs($u)->post(route('seller.landing.store'), [
-            'product_id' => $p->id, 'headline' => 'Eid Offer', 'is_published' => '1',
+            'product_id' => $p->id, 'template' => 'classic', 'headline' => 'Eid Offer', 'is_published' => '1',
         ]);
         $this->app['auth']->forgetGuards();
         app()->forgetInstance('currentStore');
@@ -96,5 +96,45 @@ class LandingPageTest extends TestCase
         $this->assertSame(1000.0, (float) $order->subtotal);
         $this->assertSame(8, Product::withoutGlobalScopes()->find($p->id)->stock);
         $this->assertSame([], (new Cart($p->store_id))->raw()); // no session cart touched
+    }
+
+    public function test_combo_order_uses_the_servers_stored_bundle_price_not_the_product_price(): void
+    {
+        $u = $this->seller();
+        $p = $this->product($u); // price 500, stock 10
+        $this->actingAs($u)->post(route('seller.landing.store'), [
+            'product_id' => $p->id, 'template' => 'combo', 'headline' => 'Combo Offer', 'is_published' => '1',
+            'combo' => [
+                ['qty' => 1, 'price' => 500],
+                ['qty' => 2, 'price' => 900, 'label' => 'Popular'], // bundle price, not 2x500
+            ],
+        ])->assertSessionHasNoErrors();
+        $this->app['auth']->forgetGuards();
+        app()->forgetInstance('currentStore');
+
+        $this->get($this->url($u, '/lp/combo-offer'))->assertOk()->assertSee('৯০০');
+
+        $res = $this->post($this->url($u, '/lp/combo-offer/order'), [
+            'combo' => 1, 'name' => 'Karim', 'phone' => '01712345678', 'address' => 'Dhaka', 'payment_method' => 'cod',
+        ]);
+        $order = Order::withoutGlobalScopes()->latest('id')->firstOrFail();
+        $res->assertRedirect('/order/'.$order->token);
+        $this->assertSame(2, $order->items()->withoutGlobalScopes()->first()->quantity);
+        $this->assertSame(900.0, (float) $order->subtotal); // the bundle price, not qty * unit price
+    }
+
+    public function test_video_template_embeds_youtube_and_falls_back_to_image(): void
+    {
+        $u = $this->seller();
+        $p = $this->product($u);
+        $this->actingAs($u)->post(route('seller.landing.store'), [
+            'product_id' => $p->id, 'template' => 'video', 'headline' => 'Video Offer', 'is_published' => '1',
+            'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ])->assertSessionHasNoErrors();
+        $this->app['auth']->forgetGuards();
+        app()->forgetInstance('currentStore');
+
+        $this->get($this->url($u, '/lp/video-offer'))->assertOk()
+            ->assertSee('youtube.com/embed/dQw4w9WgXcQ', false);
     }
 }

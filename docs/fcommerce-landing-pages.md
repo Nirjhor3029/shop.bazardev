@@ -137,8 +137,8 @@ Route::post('/lp/{slug}/order', [LandingPageController::class, 'order'])->middle
 
 ## ৯. Roadmap
 
-1. **M1 — ভিত্তি:** migrations + `LandingPageController` + "Classic COD Funnel" টেমপ্লেট + direct order flow (cart ছাড়া) + seller builder (basic form) — এখানেই feature প্রথম usable হয়ে যায়, কোনো FB tracking ছাড়া
-2. **M2 — Combo + টেমপ্লেট ভ্যারাইটি:** combo/bundle picker + Combo ও Video-first টেমপ্লেট + builder UI পলিশ (swatch preview, live preview link)
+1. ✅ **M1 — ভিত্তি (done, 2026-11-08):** migrations + `LandingPageController` + "Classic" টেমপ্লেট + direct order flow (cart ছাড়া, `OrderPlacer::placeSingle()`) + seller builder (basic form) + cross-store ownership protection
+2. ✅ **M2 — Combo + টেমপ্লেট ভ্যারাইটি (done, 2026-11-08):** combo/bundle picker (server-stored price, client কখনো price পাঠাতে পারে না) + Combo ও Video-first (YouTube embed / direct video URL, image fallback) টেমপ্লেট + seller form-এ template picker
 3. **M3 — FB tracking:** Pixel + CAPI + fbclid capture + dedup
 4. **M4 — SSLCommerz:** real-time gateway payment
 5. **M5 — Courier API:** Steadfast integration first

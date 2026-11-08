@@ -25,13 +25,22 @@ body { background:#f9fafb; color:#111827; font-family: 'Hind Siliguri', ui-sans-
 </style></head>
 <body class="antialiased">
 <main class="max-w-xl mx-auto px-4 py-5 pb-24 md:pb-10">
-    @if ($cover)<img src="{{ $cover }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover rounded-xl">@endif
+    @php $isCombo = $lp->template === 'combo' && ! empty($lp->combos); @endphp
+    @if ($lp->template === 'video' && $lp->youtubeEmbedUrl())
+        <div class="aspect-video rounded-xl overflow-hidden"><iframe src="{{ $lp->youtubeEmbedUrl() }}" class="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+    @elseif ($lp->template === 'video' && $lp->video_url)
+        <video src="{{ $lp->video_url }}" controls class="w-full aspect-video rounded-xl object-cover"></video>
+    @elseif ($cover)
+        <img src="{{ $cover }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover rounded-xl">
+    @endif
 
     <h1 class="mt-4 text-2xl font-bold leading-snug">{{ $headline }}</h1>
     @if ($lp->subheadline)<p class="mt-1 text-gray-600">{{ $lp->subheadline }}</p>@endif
 
+    @unless ($isCombo)
     <p class="mt-3 flex items-center gap-3 flex-wrap"><span class="lp-price text-3xl">{{ $price }}</span>
         @if ($pct > 0)<s class="text-gray-400 text-lg">{{ \App\Support\Fmt::money($product->price) }}</s><span class="lp-tag">-{{ \App\Support\Fmt::digits($pct) }}%</span>@endif</p>
+    @endunless
     <p class="mt-1 text-sm font-medium {{ $product->stock > 0 ? 'text-green-700' : 'text-red-600' }}">
         @if ($product->stock < 1){{ __('store.out') }}@elseif ($product->stock <= 3){{ __('store.only_left', ['n' => \App\Support\Fmt::digits($product->stock)]) }}@else{{ __('store.in_stock') }}@endif</p>
 
@@ -55,13 +64,27 @@ body { background:#f9fafb; color:#111827; font-family: 'Hind Siliguri', ui-sans-
         <h2 class="font-semibold text-lg">{{ __('store.place_order') }}</h2>
         @error('cart')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
 
-        <div><label class="block text-sm font-medium">{{ __('store.qty') }}</label>
-            <div class="mt-1 flex items-center border border-gray-300 rounded-lg w-fit">
-                <button type="button" class="w-11 h-11 flex items-center justify-center text-lg" @click="qty = Math.max(1, qty - 1)" aria-label="-1">−</button>
-                <input type="number" name="qty" x-model.number="qty" min="1" :max="max" class="w-12 border-0 text-center focus:ring-0 p-0">
-                <button type="button" class="w-11 h-11 flex items-center justify-center text-lg" @click="qty = Math.min(max, qty + 1)" aria-label="+1">+</button>
+        @if ($isCombo)
+            <div><label class="block text-sm font-medium mb-2">{{ __('store.qty') }}</label>
+                <div class="space-y-2">
+                    @foreach ($lp->combos as $i => $c)
+                        <label class="flex items-center justify-between gap-3 border rounded-lg p-3 cursor-pointer">
+                            <span class="flex items-center gap-2"><input type="radio" name="combo" value="{{ $i }}" @checked(old('combo', 0) == $i) required>
+                                <span class="font-medium">{{ \App\Support\Fmt::digits($c['qty']) }} {{ __('store.qty') }}@if (! empty($c['label'])) · {{ $c['label'] }}@endif</span></span>
+                            <span class="lp-price">{{ \App\Support\Fmt::money($c['price']) }}</span>
+                        </label>
+                    @endforeach
+                </div>@error('combo')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
-        </div>
+        @else
+            <div><label class="block text-sm font-medium">{{ __('store.qty') }}</label>
+                <div class="mt-1 flex items-center border border-gray-300 rounded-lg w-fit">
+                    <button type="button" class="w-11 h-11 flex items-center justify-center text-lg" @click="qty = Math.max(1, qty - 1)" aria-label="-1">−</button>
+                    <input type="number" name="qty" x-model.number="qty" min="1" :max="max" class="w-12 border-0 text-center focus:ring-0 p-0">
+                    <button type="button" class="w-11 h-11 flex items-center justify-center text-lg" @click="qty = Math.min(max, qty + 1)" aria-label="+1">+</button>
+                </div>
+            </div>
+        @endif
 
         @foreach ([['name','name','text','name'],['phone','mobile','tel','tel'],['email','email_opt','email','email']] as [$f,$l,$t,$ac])
             <div><label class="block text-sm font-medium" for="f-{{ $f }}">{{ __('store.'.$l) }}</label><input id="f-{{ $f }}" type="{{ $t }}" name="{{ $f }}" value="{{ old($f) }}" autocomplete="{{ $ac }}" @if ($f !== 'email') required @endif class="mt-1 border-gray-300 rounded-lg w-full">@error($f)<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
@@ -76,8 +99,8 @@ body { background:#f9fafb; color:#111827; font-family: 'Hind Siliguri', ui-sans-
                     <input type="radio" name="payment_method" value="{{ $m->type }}" x-model="pm" class="mr-2">
                     <span class="font-medium">{{ __('store.'.$m->type) }}</span>
                     <span class="block text-sm text-gray-600 ml-6" x-show="pm === '{{ $m->type }}'">
-                        @if ($m->type === 'cod'){{ $m->instructions ?: __('store.pay_cod_note', ['amount' => $price]) }}
-                        @else{{ __('store.send_money', ['amount' => $price, 'number' => \App\Support\Fmt::digits($m->number)]) }} {{ $m->instructions }}@endif
+                        @if ($m->type === 'cod'){{ $m->instructions ?: ($isCombo ? __('store.pay_cod_note_generic') : __('store.pay_cod_note', ['amount' => $price])) }}
+                        @else{{ $isCombo ? __('store.send_money_generic', ['number' => \App\Support\Fmt::digits($m->number)]) : __('store.send_money', ['amount' => $price, 'number' => \App\Support\Fmt::digits($m->number)]) }} {{ $m->instructions }}@endif
                     </span>
                 </label>
             @endforeach
@@ -95,6 +118,6 @@ body { background:#f9fafb; color:#111827; font-family: 'Hind Siliguri', ui-sans-
     @endif
 </main>
 @if ($product->stock > 0)
-<div class="lp-bar"><button class="lp-btn" type="submit" form="lp-order">{{ __('store.place_order') }} · {{ $price }}</button></div>
+<div class="lp-bar"><button class="lp-btn" type="submit" form="lp-order">{{ __('store.place_order') }}@unless ($isCombo) · {{ $price }}@endunless</button></div>
 @endif
 </body></html>

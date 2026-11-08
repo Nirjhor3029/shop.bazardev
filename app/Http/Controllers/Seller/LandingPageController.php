@@ -7,6 +7,7 @@ use App\Models\LandingPage;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class LandingPageController extends Controller
 {
@@ -56,13 +57,23 @@ class LandingPageController extends Controller
                     $fail('Choose one of your own products.');
                 }
             }],
+            'template' => ['required', Rule::in(array_keys(LandingPage::TEMPLATES))],
             'headline' => ['nullable', 'string', 'max:150'],
             'subheadline' => ['nullable', 'string', 'max:300'],
             'benefits' => ['nullable', 'string', 'max:1000'],
+            'video_url' => ['nullable', 'url', 'max:300'],
+            'combo' => ['nullable', 'array', 'max:4'],
+            'combo.*.qty' => ['nullable', 'integer', 'min:1', 'max:99'],
+            'combo.*.price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'combo.*.label' => ['nullable', 'string', 'max:40'],
         ]);
         $data['benefits'] = collect(preg_split('/\r?\n/', (string) $request->input('benefits')))->map('trim')->filter()->take(6)->values()->all();
+        $data['combos'] = collect($request->input('combo', []))
+            ->filter(fn ($row) => filled($row['qty'] ?? null) && ($row['price'] ?? '') !== '')
+            ->map(fn ($row) => ['qty' => (int) $row['qty'], 'price' => (float) $row['price'], 'label' => trim($row['label'] ?? '') ?: null])
+            ->sortBy('qty')->values()->all() ?: null;
         $data['is_published'] = $request->boolean('is_published');
-        $data['template'] = 'classic';
+        unset($data['combo']);
 
         return $data;
     }
