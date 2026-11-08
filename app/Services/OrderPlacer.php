@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\LandingPage;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
@@ -27,7 +28,25 @@ class OrderPlacer
     /** @param array{name:string,phone:string,email:?string,address:string,note:?string,payment_method:string,trx_id:?string,payer_number:?string} $d */
     public function place(Store $store, Cart $cart, array $d): Order
     {
-        return DB::transaction(function () use ($store, $cart, $d) {
+        $raw = $cart->raw();
+        if (! $raw) {
+            throw ValidationException::withMessages(['cart' => 'Your cart is empty.']);
+        }
+        $order = $this->createOrder($store, $raw, $d, null);
+        $cart->clear();
+
+        return $order;
+    }
+
+    /** Buy-now flow for a single product (landing pages): no session cart involved. */
+    public function placeSingle(Store $store, Product $product, int $qty, array $d, ?LandingPage $landingPage = null): Order
+    {
+        return $this->createOrder($store, [$product->id => $qty], $d, $landingPage?->id);
+    }
+
+    private function createOrder(Store $store, array $raw, array $d, ?int $landingPageId): Order
+    {
+        return DB::transaction(function () use ($store, $raw, $d, $landingPageId) {
             $method = PaymentMethod::where('type', $d['payment_method'])->where('is_active', true)->first();
             if (! $method) {
                 throw ValidationException::withMessages(['payment_method' => 'This payment method is not available.']);
@@ -37,10 +56,6 @@ class OrderPlacer
                 throw ValidationException::withMessages(['trx_id' => 'Send the money first, then enter the Transaction ID and your number.']);
             }
 
-            $raw = $cart->raw();
-            if (! $raw) {
-                throw ValidationException::withMessages(['cart' => 'Your cart is empty.']);
-            }
             // lock the rows so two buyers cannot take the last item together
             $products = Product::where('is_active', true)->whereIn('id', array_keys($raw))->lockForUpdate()->get()->keyBy('id');
             $subtotal = 0.0;
@@ -62,6 +77,8 @@ class OrderPlacer
                 'number' => $this->number(),
                 'token' => Str::random(40),
                 'status' => 'pending',
+                'source' => $landingPageId ? 'landing' : 'storefront',
+                'landing_page_id' => $landingPageId,
                 'payment_method' => $method->type,
                 'payment_status' => $manual ? 'verifying' : 'unpaid',
                 'trx_id' => $manual ? $d['trx_id'] : null,
@@ -80,7 +97,6 @@ class OrderPlacer
                 $order->items()->create(['product_id' => $p->id, 'name' => $p->name, 'unit_price' => $price, 'quantity' => $qty, 'line_total' => $line]);
                 $p->decrement('stock', $qty);
             }
-            $cart->clear();
 
             return $order;
         });

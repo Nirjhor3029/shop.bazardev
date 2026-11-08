@@ -4,10 +4,12 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DemoLoginController;
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Seller\AppearanceController;
 use App\Http\Controllers\Seller\CategoryController;
+use App\Http\Controllers\Seller\LandingPageController as SellerLandingPageController;
 use App\Http\Controllers\Seller\OrderController;
 use App\Http\Controllers\Seller\SettingsController;
 use App\Http\Controllers\Seller\ProductController;
@@ -24,6 +26,8 @@ Route::domain('{store}.'.config('shop.base_domain'))
     ->group(function () {
         Route::get('/', [StorefrontController::class, 'home']);
         Route::get('/p/{slug}', [StorefrontController::class, 'product'])->where('slug', '[a-z0-9-]+');
+        Route::get('/lp/{slug}', [LandingPageController::class, 'show'])->where('slug', '[a-z0-9-]+');
+        Route::post('/lp/{slug}/order', [LandingPageController::class, 'order'])->where('slug', '[a-z0-9-]+')->middleware('throttle:10,1');
         Route::get('/cart', [CartController::class, 'show']);
         Route::post('/cart/add', [CartController::class, 'add'])->middleware('throttle:30,1');
         Route::post('/cart/update', [CartController::class, 'update'])->middleware('throttle:60,1');
@@ -53,6 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('orders/{order}/payment', [OrderController::class, 'payment'])->name('seller.orders.payment');
         Route::get('appearance', [AppearanceController::class, 'edit'])->name('seller.appearance.edit');
         Route::post('appearance', [AppearanceController::class, 'update'])->name('seller.appearance.update');
+        Route::resource('landing', SellerLandingPageController::class)->except('show')->names('seller.landing');
         Route::get('settings', [SettingsController::class, 'edit'])->name('seller.settings.edit');
         Route::put('settings', [SettingsController::class, 'update'])->name('seller.settings.update');
         Route::get('categories', [CategoryController::class, 'index'])->name('seller.categories.index');
