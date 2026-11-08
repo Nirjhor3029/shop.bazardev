@@ -5,10 +5,24 @@
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
         <p class="text-sm text-gray-500">Preview your store: <a class="text-indigo-600 underline" href="{{ $store->url() }}" target="_blank" rel="noopener">{{ $store->url() }}</a> @if ($store->status !== 'published')(publish it first)@endif</p>
         <form method="POST" enctype="multipart/form-data" action="{{ route('seller.appearance.update') }}" class="bg-white shadow-sm sm:rounded-lg p-6 space-y-6">@csrf
-            <div><p class="text-sm font-medium mb-2">Theme</p>
+            <div x-data="{ theme: '{{ old('theme', $store->theme) }}' }">
+                <p class="text-sm font-medium mb-2">Theme</p>
+                <div class="grid sm:grid-cols-3 gap-3">
                 @foreach (\App\Models\Store::THEMES as $k => $label)
-                    <label class="block border rounded-md p-3 mb-2"><input type="radio" name="theme" value="{{ $k }}" class="mr-2" @checked(old('theme', $store->theme) === $k)>{{ $label }}</label>
-                @endforeach @error('theme')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+                    <label class="block border rounded-md p-3 cursor-pointer" :class="theme === '{{ $k }}' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'" @click="theme = '{{ $k }}'">
+                        <input type="radio" name="theme" value="{{ $k }}" class="hidden" x-model="theme">
+                        @if ($k === 'minimal')
+                            <div class="h-14 rounded-lg bg-white border flex items-center px-2 gap-1"><span class="w-6 h-6 rounded-full bg-indigo-500"></span><span class="flex-1 h-2 rounded-full bg-gray-200"></span></div>
+                        @elseif ($k === 'bold')
+                            <div class="h-14 rounded bg-slate-900 flex items-center px-2 gap-1"><span class="w-6 h-2 bg-indigo-400"></span><span class="flex-1 h-2 bg-slate-600"></span></div>
+                        @else
+                            <div class="h-14 rounded-sm bg-[#faf6f2] border border-[#e7e0d8] flex items-center px-2"><span class="font-serif text-[#78716c] text-xs">Aa</span></div>
+                        @endif
+                        <p class="mt-2 text-sm font-medium">{{ $label }}</p>
+                    </label>
+                @endforeach
+                </div>
+            @error('theme')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium">Main color</label><input type="color" name="color" value="{{ old('color', $store->settings['color'] ?? '#4f46e5') }}" class="mt-1 h-10 w-20">@error('color')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
                 <div><label class="block text-sm font-medium">Font</label><select name="font" class="mt-1 border-gray-300 rounded-md">@foreach (\App\Models\Store::FONTS as $k => $l)<option value="{{ $k }}" @selected(old('font', $look['font']) === $k)>{{ $l }}</option>@endforeach</select></div>

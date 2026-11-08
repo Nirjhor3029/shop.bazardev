@@ -31,26 +31,35 @@ class Store extends Model
         'hero' => 'Banner / hero',
         'categories' => 'Category buttons',
         'products' => 'Product grid',
+        'trust' => 'Trust badges (COD/bKash/Nagad icons)',
         'about' => 'About and contact',
     ];
 
-    /** Look and content settings with safe defaults. */
+    /** Look and content settings with safe defaults. New section types added later are backfilled automatically, so existing stores don't need to resave appearance to pick them up. */
     public function look(): array
     {
+        $lang = $this->settings['look']['lang'] ?? 'bn';
         $defaults = [
-            'font' => 'sans', 'announcement' => '', 'hero_title' => '', 'hero_text' => '', 'hero_button' => 'Shop now',
+            'font' => 'sans', 'announcement' => '', 'hero_title' => '', 'hero_text' => '',
+            'hero_button' => $lang === 'bn' ? 'এখনই কিনুন' : 'Shop now',
             'about' => '', 'phone' => '', 'email' => '', 'address' => '', 'facebook' => '',
             'logo' => null, 'banner' => null, 'whatsapp' => '', 'digits' => true, 'lang' => 'bn',
-            'sections' => collect(self::SECTIONS)->keys()->map(fn ($t) => ['type' => $t, 'on' => true])->all(),
         ];
 
-        return array_merge($defaults, $this->settings['look'] ?? []);
+        $merged = array_merge($defaults, $this->settings['look'] ?? []);
+
+        // Keep the seller's saved order; just append any section type that's new since they last saved.
+        $saved = $merged['sections'] ?? [];
+        $savedTypes = collect($saved)->pluck('type')->all();
+        $missing = collect(self::SECTIONS)->keys()->reject(fn ($t) => in_array($t, $savedTypes, true))
+            ->map(fn ($t) => ['type' => $t, 'on' => true]);
+        $merged['sections'] = array_values([...$saved, ...$missing]);
+
+        return $merged;
     }
 
     public function sections(): array
     {
-        $saved = collect($this->look()['sections'])->pluck('on', 'type');
-
         return collect($this->look()['sections'])->filter(fn ($s) => isset(self::SECTIONS[$s['type']]) && $s['on'])->pluck('type')->all();
     }
 

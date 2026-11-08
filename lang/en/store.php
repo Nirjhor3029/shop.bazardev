@@ -17,4 +17,5 @@ return [
     'st' => ['pending' => 'Pending', 'confirmed' => 'Confirmed', 'shipped' => 'Shipped', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled'],
     'pst' => ['unpaid' => 'unpaid', 'verifying' => 'the seller will check it soon', 'paid' => 'paid', 'failed' => 'failed'],
     'wa_msg' => 'Hello, I want to buy: :name :url', 'wa_btn' => 'WhatsApp',
+    'new' => 'New', 'trust_note' => 'Secure payment & fast delivery',
 ];

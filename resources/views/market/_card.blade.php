@@ -7,7 +7,7 @@
     </div>
     <div class="p-3">
         <p class="text-sm line-clamp-2 min-h-[2.5rem]">{{ $p->name }}</p>
-        <p class="mt-1 font-bold text-brand">৳{{ number_format($p->currentPrice()) }} @if ($pct > 0)<s class="text-xs font-normal text-gray-400">৳{{ number_format($p->price) }}</s>@endif</p>
+        <p class="mt-1 font-bold text-brand">{{ \App\Support\Fmt::money($p->currentPrice()) }} @if ($pct > 0)<s class="text-xs font-normal text-gray-400">{{ \App\Support\Fmt::money($p->price) }}</s>@endif</p>
         <p class="mt-1 text-xs text-gray-500 truncate">{{ $p->store->name }}</p>
     </div>
 </a>

@@ -1,8 +1,11 @@
-@php $pct = ($p->sale_price && $p->price > 0) ? (int) round((1 - $p->sale_price / $p->price) * 100) : 0; @endphp
+@php
+    $pct = ($p->sale_price && $p->price > 0) ? (int) round((1 - $p->sale_price / $p->price) * 100) : 0;
+    $isNew = $pct <= 0 && $p->created_at && $p->created_at->diffInDays() <= 14;
+@endphp
 <a href="/p/{{ $p->slug }}" class="sf-card block overflow-hidden">
     <div class="relative aspect-square bg-gray-100 overflow-hidden">
         @if ($p->coverUrl())<img src="{{ $p->coverUrl() }}" alt="{{ $p->name }}" loading="lazy" class="w-full h-full object-cover">@endif
-        @if ($pct > 0)<span class="absolute top-2 left-2 sf-tag">-{{ \App\Support\Fmt::digits($pct) }}%</span>@endif
+        @if ($pct > 0)<span class="absolute top-2 left-2 sf-tag">-{{ \App\Support\Fmt::digits($pct) }}%</span>@elseif ($isNew)<span class="absolute top-2 left-2 sf-tag-new">{{ __('store.new') }}</span>@endif
         @if ($p->stock < 1)<span class="absolute inset-0 bg-white/70 flex items-center justify-center font-semibold text-gray-700">{{ __('store.out') }}</span>@endif
     </div>
     <div class="p-3">
