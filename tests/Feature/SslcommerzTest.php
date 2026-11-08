@@ -22,6 +22,7 @@ class SslcommerzTest extends TestCase
         $u = User::factory()->create();
         $s = (new StoreCreator)->create($u, $slug, ucfirst($slug));
         $s->update(['status' => 'published']);
+        $this->upgradeToPro($s); // these tests are about the SSLCommerz integration, not plan gating (covered separately)
 
         return $u->fresh();
     }
@@ -33,7 +34,8 @@ class SslcommerzTest extends TestCase
 
     private function url(User $u, string $path): string
     {
-        return 'http://'.$u->store->slug.'.'.config('shop.base_domain').$path;
+        // Free plan (the default) gets a path URL on the main domain, not a subdomain - see Store::url().
+        return $u->store->fresh()->url().$path;
     }
 
     private function enableSslcommerz(User $u): void

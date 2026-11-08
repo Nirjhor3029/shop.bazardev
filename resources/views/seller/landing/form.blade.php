@@ -4,6 +4,7 @@
     @include('seller._nav')
     <div class="py-6"><div class="max-w-2xl mx-auto px-4 sm:px-6 space-y-4">
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
+        @error('limit')<div class="bg-amber-50 text-amber-700 p-3 rounded">{{ $message }}</div>@enderror
         <form method="POST" action="{{ $editing ? route('seller.landing.update', $lp) : route('seller.landing.store') }}" class="bg-white shadow-sm sm:rounded-lg p-6 space-y-4" x-data="{ template: '{{ old('template', $lp->template ?: 'classic') }}' }">
             @csrf @if ($editing) @method('PUT') @endif
             <div><label class="block text-sm font-medium text-gray-700">Product</label>
@@ -16,9 +17,10 @@
             <div><label class="block text-sm font-medium text-gray-700 mb-2">Template</label>
                 <div class="grid sm:grid-cols-3 gap-3">
                 @foreach (\App\Models\LandingPage::TEMPLATES as $k => $label)
-                    <label class="block border rounded-md p-3 cursor-pointer text-sm" :class="template === '{{ $k }}' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'" @click="template = '{{ $k }}'">
-                        <input type="radio" name="template" value="{{ $k }}" class="hidden" x-model="template">
-                        {{ $label }}
+                    @php $locked = ! $plan->allowsTemplate($k); @endphp
+                    <label class="block border rounded-md p-3 text-sm {{ $locked ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer' }}" :class="template === '{{ $k }}' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'" @if (! $locked) @click="template = '{{ $k }}'" @endif>
+                        <input type="radio" name="template" value="{{ $k }}" class="hidden" x-model="template" @disabled($locked)>
+                        {{ $label }} @if ($locked)<span class="text-amber-600 font-medium">(Premium)</span>@endif
                     </label>
                 @endforeach
                 </div>@error('template')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
@@ -47,11 +49,15 @@
             </div>
 
             <div class="border-t pt-4 space-y-3"><h3 class="font-semibold">Facebook tracking (optional)</h3>
+                @if (! $plan->allow_pixel_tracking)
+                    <p class="text-sm text-amber-600">Not available on your current plan. Upgrade to track Facebook ad conversions.</p>
+                @else
                 <p class="text-xs text-gray-500">Paste your own Meta Pixel ID and Conversions API token (from your Business Manager) to track ad conversions on this page.</p>
                 <div><label class="block text-sm font-medium text-gray-700">Pixel ID</label>
                     <input name="pixel_id" value="{{ old('pixel_id', $lp->pixel_id) }}" maxlength="30" placeholder="e.g. 1234567890123456" class="mt-1 border-gray-300 rounded-md w-full">@error('pixel_id')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
                 <div><label class="block text-sm font-medium text-gray-700">Conversions API access token</label>
                     <input name="capi_token" type="password" maxlength="500" placeholder="{{ $editing && $lp->capi_token ? 'Saved - leave blank to keep it' : 'Paste your access token' }}" class="mt-1 border-gray-300 rounded-md w-full">@error('capi_token')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+                @endif
             </div>
 
             <label class="flex items-center gap-2"><input type="checkbox" name="is_published" value="1" @checked(old('is_published', $lp->is_published)) class="rounded"> Published (page is live)</label>

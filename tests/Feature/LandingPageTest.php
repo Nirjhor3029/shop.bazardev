@@ -21,6 +21,7 @@ class LandingPageTest extends TestCase
         $u = User::factory()->create();
         $s = (new StoreCreator)->create($u, $slug, ucfirst($slug));
         $s->update(['status' => 'published']);
+        $this->upgradeToPro($s); // these tests are about landing-page behaviour, not plan gating (covered separately)
 
         return $u->fresh();
     }
@@ -32,7 +33,8 @@ class LandingPageTest extends TestCase
 
     private function url(User $u, string $path): string
     {
-        return 'http://'.$u->store->slug.'.'.config('shop.base_domain').$path;
+        // Free plan (the default) gets a path URL on the main domain, not a subdomain - see Store::url().
+        return $u->store->fresh()->url().$path;
     }
 
     public function test_seller_can_create_and_publish_a_landing_page(): void

@@ -146,7 +146,7 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
     @if (session('status'))<div class="mb-4 bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
     @yield('content')
 </main>
-<footer class="max-w-5xl mx-auto px-4 pb-24 md:pb-10 text-xs text-gray-500">&copy; {{ \App\Support\Fmt::digits(date('Y')) }} {{ $store->name }} · {{ __('store.made_with') }}</footer>
+<footer class="max-w-5xl mx-auto px-4 pb-24 md:pb-10 text-xs text-gray-500">&copy; {{ \App\Support\Fmt::digits(date('Y')) }} {{ $store->name }}@unless ($store->activePlan()->remove_branding) · {{ __('store.made_with') }}@endunless</footer>
 @if ($wa && ! $__env->hasSection('hide_fab'))<a class="sf-fab" href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></a>@endif
 @yield('bar')
 <noscript><style>.sf-reveal{opacity:1!important;transform:none!important;}</style></noscript>

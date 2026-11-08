@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DemoLoginController;
@@ -20,26 +21,30 @@ use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// STOREFRONT: STORE.shop.bazardev.com
+// STOREFRONT: shared route list, registered twice below - once as a subdomain (paid plans),
+// once as a path on the main domain (free-plan default; see ResolveStoreFromHost).
+$storefrontRoutes = function () {
+    Route::get('/', [StorefrontController::class, 'home']);
+    Route::get('/p/{slug}', [StorefrontController::class, 'product'])->where('slug', '[a-z0-9-]+');
+    Route::get('/lp/{slug}', [LandingPageController::class, 'show'])->where('slug', '[a-z0-9-]+');
+    Route::post('/lp/{slug}/order', [LandingPageController::class, 'order'])->where('slug', '[a-z0-9-]+')->middleware('throttle:10,1');
+    Route::get('/cart', [CartController::class, 'show']);
+    Route::post('/cart/add', [CartController::class, 'add'])->middleware('throttle:30,1');
+    Route::post('/cart/update', [CartController::class, 'update'])->middleware('throttle:60,1');
+    Route::get('/checkout', [CheckoutController::class, 'show']);
+    Route::post('/checkout', [CheckoutController::class, 'place'])->middleware('throttle:10,1');
+    Route::get('/order/{token}', [CheckoutController::class, 'order'])->where('token', '[A-Za-z0-9]{40}');
+    Route::match(['get', 'post'], '/sslcommerz/success/{token}', [SslcommerzController::class, 'success'])->where('token', '[A-Za-z0-9]{40}');
+    Route::match(['get', 'post'], '/sslcommerz/fail/{token}', [SslcommerzController::class, 'fail'])->where('token', '[A-Za-z0-9]{40}');
+    Route::match(['get', 'post'], '/sslcommerz/cancel/{token}', [SslcommerzController::class, 'cancel'])->where('token', '[A-Za-z0-9]{40}');
+    Route::post('/sslcommerz/ipn', [SslcommerzController::class, 'ipn']);
+};
+
+// STOREFRONT: STORE.shop.bazardev.com (requires a plan with allow_subdomain)
 Route::domain('{store}.'.config('shop.base_domain'))
     ->middleware('store.host')
     ->where(['store' => '[a-z0-9-]{3,30}'])
-    ->group(function () {
-        Route::get('/', [StorefrontController::class, 'home']);
-        Route::get('/p/{slug}', [StorefrontController::class, 'product'])->where('slug', '[a-z0-9-]+');
-        Route::get('/lp/{slug}', [LandingPageController::class, 'show'])->where('slug', '[a-z0-9-]+');
-        Route::post('/lp/{slug}/order', [LandingPageController::class, 'order'])->where('slug', '[a-z0-9-]+')->middleware('throttle:10,1');
-        Route::get('/cart', [CartController::class, 'show']);
-        Route::post('/cart/add', [CartController::class, 'add'])->middleware('throttle:30,1');
-        Route::post('/cart/update', [CartController::class, 'update'])->middleware('throttle:60,1');
-        Route::get('/checkout', [CheckoutController::class, 'show']);
-        Route::post('/checkout', [CheckoutController::class, 'place'])->middleware('throttle:10,1');
-        Route::get('/order/{token}', [CheckoutController::class, 'order'])->where('token', '[A-Za-z0-9]{40}');
-        Route::match(['get', 'post'], '/sslcommerz/success/{token}', [SslcommerzController::class, 'success'])->where('token', '[A-Za-z0-9]{40}');
-        Route::match(['get', 'post'], '/sslcommerz/fail/{token}', [SslcommerzController::class, 'fail'])->where('token', '[A-Za-z0-9]{40}');
-        Route::match(['get', 'post'], '/sslcommerz/cancel/{token}', [SslcommerzController::class, 'cancel'])->where('token', '[A-Za-z0-9]{40}');
-        Route::post('/sslcommerz/ipn', [SslcommerzController::class, 'ipn']);
-    });
+    ->group($storefrontRoutes);
 
 // MAIN DOMAIN: shop.bazardev.com
 Route::get('/', [MarketController::class, 'home'])->name('home');
@@ -76,6 +81,8 @@ Route::post('/demo-login', DemoLoginController::class)->middleware('throttle:20,
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.index');
     Route::post('/stores/{store}/status', [AdminController::class, 'status'])->name('admin.stores.status');
+    Route::post('/stores/{store}/plan', [AdminController::class, 'plan'])->name('admin.stores.plan');
+    Route::resource('plans', PlanController::class)->except('show')->names('admin.plans');
 });
 
 Route::middleware('auth')->group(function () {
@@ -100,3 +107,7 @@ Route::get('/internal/domain-check', function (Request $request) {
     }
     abort(404);
 });
+
+// STOREFRONT: shop.bazardev.com/{store} - the free-plan URL. Registered last so it only
+// catches what no specific main-domain route above already claimed (search, login, admin, ...).
+Route::middleware('store.host')->prefix('{store}')->where(['store' => '[a-z0-9-]{3,30}'])->group($storefrontRoutes);

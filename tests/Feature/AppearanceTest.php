@@ -20,6 +20,7 @@ class AppearanceTest extends TestCase
         $u = User::factory()->create();
         $s = (new StoreCreator)->create($u, $slug, ucfirst($slug));
         $s->update(['status' => 'published']);
+        $this->upgradeToPro($s); // these tests are about theme/appearance behaviour, not plan gating (covered separately)
 
         return $u->fresh();
     }
@@ -82,7 +83,7 @@ class AppearanceTest extends TestCase
         $a = $this->seller();
         $this->save($a, ['theme' => 'boutique', 'hero_title' => '<script>alert(1)</script>Hi', 'announcement' => 'Offer <b>now</b>']);
         app()->forgetInstance('currentStore');
-        $res = $this->get('http://alpha.'.config('shop.base_domain').'/')->assertOk();
+        $res = $this->get('http://'.config('shop.base_domain').'/alpha'.'/')->assertOk();
         $res->assertSee('theme-boutique', false)->assertSee('font-serif-x', false)->assertDontSee('<script>alert(1)</script>', false)->assertSee('&lt;script&gt;', false);
         $res->assertSee('Offer &lt;b&gt;now&lt;/b&gt;', false);
     }
@@ -93,13 +94,13 @@ class AppearanceTest extends TestCase
         $this->save($a, ['theme' => 'vibrant', 'overlay' => 'soft'])->assertSessionHasNoErrors();
         $this->assertSame('soft', $a->store->fresh()->look()['overlay']);
         app()->forgetInstance('currentStore');
-        $this->get('http://alpha.'.config('shop.base_domain').'/')->assertOk()->assertSee('theme-vibrant', false)->assertSee('sf-hero-vibrant', false);
+        $this->get('http://'.config('shop.base_domain').'/alpha'.'/')->assertOk()->assertSee('theme-vibrant', false)->assertSee('sf-hero-vibrant', false);
 
         $this->app['auth']->forgetGuards();
         app()->forgetInstance('currentStore');
         $this->save($a, ['theme' => 'mono', 'overlay' => 'none'])->assertSessionHasNoErrors();
         app()->forgetInstance('currentStore');
-        $this->get('http://alpha.'.config('shop.base_domain').'/')->assertOk()->assertSee('theme-mono', false)->assertSee('sf-hero-mono-text', false);
+        $this->get('http://'.config('shop.base_domain').'/alpha'.'/')->assertOk()->assertSee('theme-mono', false)->assertSee('sf-hero-mono-text', false);
     }
 
     public function test_category_filter(): void
@@ -109,7 +110,7 @@ class AppearanceTest extends TestCase
         $c = Category::create(['name' => 'Shoes', 'slug' => 'shoes']);
         Product::create(['category_id' => $c->id, 'name' => 'Red Shoe', 'slug' => 'red-shoe', 'price' => 10, 'stock' => 5]);
         app()->forgetInstance('currentStore');
-        $base = 'http://alpha.'.config('shop.base_domain');
+        $base = 'http://'.config('shop.base_domain').'/alpha';
         $this->get("$base/?c=shoes")->assertOk()->assertSee('Red Shoe')->assertDontSee('Sample product 1');
         $this->get("$base/?c=nonsense")->assertOk()->assertSee('Sample product 1');
     }

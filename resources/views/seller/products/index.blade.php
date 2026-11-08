@@ -3,6 +3,8 @@
     @include('seller._nav')
     <div class="py-6"><div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
+        @error('limit')<div class="bg-amber-50 text-amber-700 p-3 rounded">{{ $message }}</div>@enderror
+        <p class="text-xs text-gray-500">{{ $products->total() }} of {{ $plan->max_products ?? 'unlimited' }} used on the {{ $plan->name }} plan.</p>
         <a href="{{ route('seller.products.create') }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-md text-sm">+ Add product</a>
         <div class="bg-white shadow-sm sm:rounded-lg divide-y">
             @forelse ($products as $p)

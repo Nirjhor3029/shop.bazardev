@@ -4,6 +4,7 @@
     <div class="py-6"><div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
         <p class="text-sm text-gray-500">একটা পণ্যের জন্য আলাদা অর্ডার-ফর্ম পেজ — Facebook-এ boost করার জন্য বানানো, cart ছাড়াই সরাসরি অর্ডার নেয়।</p>
+        <p class="text-xs text-gray-500">{{ $pages->count() }} of {{ $plan->max_landing_pages ?? 'unlimited' }} used on the {{ $plan->name }} plan.</p>
         <a href="{{ route('seller.landing.create') }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-md text-sm">+ Add landing page</a>
         <div class="bg-white shadow-sm sm:rounded-lg divide-y">
             @forelse ($pages as $lp)

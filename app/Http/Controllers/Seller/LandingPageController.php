@@ -8,23 +8,29 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class LandingPageController extends Controller
 {
     public function index()
     {
-        return view('seller.landing.index', ['pages' => LandingPage::with('product')->latest()->get()]);
+        return view('seller.landing.index', ['pages' => LandingPage::with('product')->latest()->get(), 'plan' => app('currentStore')->activePlan()]);
     }
 
     public function create()
     {
-        return view('seller.landing.form', ['lp' => new LandingPage(['template' => 'classic']), 'products' => Product::where('is_active', true)->orderBy('name')->get()]);
+        return view('seller.landing.form', ['lp' => new LandingPage(['template' => 'classic']), 'products' => Product::where('is_active', true)->orderBy('name')->get(), 'plan' => app('currentStore')->activePlan()]);
     }
 
     public function store(Request $request)
     {
+        $limit = app('currentStore')->activePlan()->max_landing_pages;
+        if ($limit !== null && LandingPage::count() >= $limit) {
+            return back()->withErrors(['limit' => "Your plan allows up to {$limit} landing page(s). Upgrade for more."])->withInput();
+        }
+
         $data = $this->validated($request);
-        $data['slug'] = $this->uniqueSlug($data['headline'] ?: 'offer');
+        $data['slug'] = $this->uniqueSlug($data['headline'] ?? '' ?: 'offer');
         LandingPage::create($data);
 
         return redirect()->route('seller.landing.index')->with('status', 'Landing page created.');
@@ -32,7 +38,7 @@ class LandingPageController extends Controller
 
     public function edit(LandingPage $landing)
     {
-        return view('seller.landing.form', ['lp' => $landing, 'products' => Product::where('is_active', true)->orderBy('name')->get()]);
+        return view('seller.landing.form', ['lp' => $landing, 'products' => Product::where('is_active', true)->orderBy('name')->get(), 'plan' => app('currentStore')->activePlan()]);
     }
 
     public function update(Request $request, LandingPage $landing)
@@ -78,6 +84,14 @@ class LandingPageController extends Controller
         unset($data['combo']);
         if (blank($data['capi_token'] ?? null)) {
             unset($data['capi_token']); // never blank out an already-saved token just because the (masked) field was left empty
+        }
+
+        $plan = app('currentStore')->activePlan();
+        if (! $plan->allowsTemplate($data['template'])) {
+            throw ValidationException::withMessages(['template' => 'This template is not available on your current plan.']);
+        }
+        if (! $plan->allow_pixel_tracking && (filled($data['pixel_id'] ?? null) || filled($data['capi_token'] ?? null))) {
+            throw ValidationException::withMessages(['pixel_id' => 'Facebook tracking is not available on your current plan.']);
         }
 
         return $data;

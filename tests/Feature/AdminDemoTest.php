@@ -71,11 +71,11 @@ class AdminDemoTest extends TestCase
         $store = (new StoreCreator)->create($owner, 'alpha', 'Alpha');
         $store->update(['status' => 'published']);
         $base = config('shop.base_domain');
-        $this->get("http://alpha.$base/")->assertOk();
+        $this->get("http://$base/alpha/")->assertOk();
 
         $admin = User::factory()->create(['is_admin' => true]);
         $this->actingAs($admin)->post(route('admin.stores.status', $store), ['status' => 'suspended'])->assertRedirect();
-        $this->get("http://alpha.$base/")->assertNotFound();
+        $this->get("http://$base/alpha/")->assertNotFound();
 
         $this->app['auth']->forgetGuards();
         app()->forgetInstance('currentStore');

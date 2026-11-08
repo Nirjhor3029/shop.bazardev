@@ -4,19 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Store extends Model
 {
-    protected $fillable = ['user_id', 'slug', 'name', 'status', 'theme', 'settings'];
+    protected $fillable = ['user_id', 'slug', 'name', 'status', 'theme', 'settings', 'plan_id', 'plan_expires_at'];
 
     protected function casts(): array
     {
-        return ['settings' => 'array'];
+        return ['settings' => 'array', 'plan_expires_at' => 'datetime'];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    /** The plan in effect right now - falls back to the default plan if unset or expired, so a lapsed subscription just degrades to Free rather than breaking. */
+    public function activePlan(): Plan
+    {
+        if ($this->plan && (! $this->plan_expires_at || $this->plan_expires_at->isFuture())) {
+            return $this->plan;
+        }
+
+        return Plan::default();
     }
 
     public const THEMES = [
@@ -74,11 +90,14 @@ class Store extends Model
 
     public function fileUrl(?string $path): ?string
     {
-        return $path ? \Illuminate\Support\Facades\Storage::disk('public')->url($path) : null;
+        return $path ? Storage::disk('public')->url($path) : null;
     }
 
+    /** Paid (subdomain-allowed) stores get the branded subdomain; everyone else gets a path on the main domain. */
     public function url(): string
     {
-        return 'https://'.$this->slug.'.'.config('shop.base_domain');
+        return $this->activePlan()->allow_subdomain
+            ? 'https://'.$this->slug.'.'.config('shop.base_domain')
+            : 'https://'.config('shop.base_domain').'/'.$this->slug;
     }
 }

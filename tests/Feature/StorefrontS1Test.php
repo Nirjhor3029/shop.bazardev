@@ -25,7 +25,8 @@ class StorefrontS1Test extends TestCase
 
     private function url(string $path = '/'): string
     {
-        return 'http://alpha.'.config('shop.base_domain').$path;
+        // Free plan (the default) gets a path URL, not a subdomain - see Store::url().
+        return 'http://'.config('shop.base_domain').'/alpha'.$path;
     }
 
     private function first(): Product
@@ -81,7 +82,7 @@ class StorefrontS1Test extends TestCase
         $p = $this->first();
         $r = $this->get($this->url('/p/'.$p->slug))->assertOk();
         $r->assertSee('https://wa.me/8801712345678?text=', false);
-        $r->assertSee(rawurlencode('https://alpha.'.config('shop.base_domain').'/p/'.$p->slug), false);   // product link inside the message
+        $r->assertSee(rawurlencode('https://'.config('shop.base_domain').'/alpha/p/'.$p->slug), false);   // product link inside the message
         $this->get($this->url('/'))->assertOk()->assertSee('sf-fab', false); // floating button on the home page
     }
 

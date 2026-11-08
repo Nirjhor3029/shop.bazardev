@@ -82,14 +82,14 @@ class SellerProductsTest extends TestCase
         $this->seller('beta');
         $base = config('shop.base_domain');
 
-        $this->get("http://alpha.$base/")->assertNotFound(); // draft
+        $this->get("http://$base/alpha/")->assertNotFound(); // draft
         $a->store->update(['status' => 'published']);
-        $this->get("http://alpha.$base/")->assertOk()->assertSee('Sample product 1');
-        $this->get("http://beta.$base/")->assertNotFound();  // beta still draft
+        $this->get("http://$base/alpha/")->assertOk()->assertSee('Sample product 1');
+        $this->get("http://$base/beta/")->assertNotFound();  // beta still draft
 
         $g = $this->seller('gamma');
         $this->productOf($g)->update(['slug' => 'only-in-gamma']);
-        $this->get("http://alpha.$base/p/only-in-gamma")->assertNotFound(); // other store's product is invisible
-        $this->get("http://alpha.$base/p/sample-product-1")->assertOk();
+        $this->get("http://$base/alpha/p/only-in-gamma")->assertNotFound(); // other store's product is invisible
+        $this->get("http://$base/alpha/p/sample-product-1")->assertOk();
     }
 }

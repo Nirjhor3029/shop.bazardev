@@ -61,7 +61,7 @@ class SettingsController extends Controller
         if (filled($data['sslcommerz_store_passwd'] ?? null)) {
             $ssl->secret = $data['sslcommerz_store_passwd']; // only overwrite the saved password when a new one was actually typed
         }
-        $ssl->is_active = $request->boolean('sslcommerz_on') && filled($storeId) && filled($ssl->secret);
+        $ssl->is_active = $store->activePlan()->allow_sslcommerz && $request->boolean('sslcommerz_on') && filled($storeId) && filled($ssl->secret);
         $ssl->save();
 
         return back()->with('status', 'Settings saved.');

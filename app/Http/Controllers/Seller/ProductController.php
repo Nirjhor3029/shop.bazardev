@@ -15,7 +15,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        return view('seller.products.index', ['products' => Product::with('images', 'category')->latest()->paginate(20)]);
+        return view('seller.products.index', ['products' => Product::with('images', 'category')->latest()->paginate(20), 'plan' => app('currentStore')->activePlan()]);
     }
 
     public function create()
@@ -25,6 +25,11 @@ class ProductController extends Controller
 
     public function store(Request $request, ImageStore $images)
     {
+        $limit = app('currentStore')->activePlan()->max_products;
+        if ($limit !== null && Product::count() >= $limit) {
+            return back()->withErrors(['limit' => "Your plan allows up to {$limit} products. Upgrade to add more."])->withInput();
+        }
+
         $data = $this->validated($request);
         $product = Product::create($data + ['slug' => $this->uniqueSlug($data['name'])]);
         $this->addImages($request, $product, $images);

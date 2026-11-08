@@ -9,8 +9,9 @@
                 <p class="text-sm font-medium mb-2">Theme</p>
                 <div class="grid sm:grid-cols-3 gap-3">
                 @foreach (\App\Models\Store::THEMES as $k => $label)
-                    <label class="block border rounded-md p-3 cursor-pointer" :class="theme === '{{ $k }}' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'" @click="theme = '{{ $k }}'">
-                        <input type="radio" name="theme" value="{{ $k }}" class="hidden" x-model="theme">
+                    @php $locked = ! $plan->allowsTheme($k); @endphp
+                    <label class="block border rounded-md p-3 {{ $locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}" :class="theme === '{{ $k }}' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'" @if (! $locked) @click="theme = '{{ $k }}'" @endif>
+                        <input type="radio" name="theme" value="{{ $k }}" class="hidden" x-model="theme" @disabled($locked)>
                         @if ($k === 'minimal')
                             <div class="h-14 rounded-lg bg-white border flex items-center px-2 gap-1"><span class="w-6 h-6 rounded-full bg-indigo-500"></span><span class="flex-1 h-2 rounded-full bg-gray-200"></span></div>
                         @elseif ($k === 'bold')
@@ -22,7 +23,7 @@
                         @else
                             <div class="h-14 border border-gray-900 flex items-center justify-center bg-white"><span class="text-gray-900 text-xs uppercase tracking-widest">Aa</span></div>
                         @endif
-                        <p class="mt-2 text-sm font-medium">{{ $label }}</p>
+                        <p class="mt-2 text-sm font-medium">{{ $label }} @if ($locked)<span class="text-amber-600">(Premium)</span>@endif</p>
                     </label>
                 @endforeach
                 </div>

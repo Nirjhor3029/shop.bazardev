@@ -4,6 +4,7 @@
     @include('seller._nav')
     <div class="py-6"><div class="max-w-2xl mx-auto px-4 sm:px-6 space-y-4">
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
+        @error('limit')<div class="bg-amber-50 text-amber-700 p-3 rounded">{{ $message }}</div>@enderror
         <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('seller.products.update', $product) : route('seller.products.store') }}" class="bg-white shadow-sm sm:rounded-lg p-6 space-y-4">
             @csrf @if ($editing) @method('PUT') @endif
             <div><label class="block text-sm font-medium text-gray-700">Name</label>

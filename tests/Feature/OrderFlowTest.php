@@ -14,14 +14,6 @@ class OrderFlowTest extends TestCase
 {
     use RefreshDatabase;
 
-    private string $base;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->base = config('shop.base_domain');
-    }
-
     private function seller(string $slug, array $settings = []): User
     {
         $u = User::factory()->create();
@@ -38,7 +30,8 @@ class OrderFlowTest extends TestCase
 
     private function url(User $u, string $path): string
     {
-        return 'http://'.$u->store->slug.'.'.$this->base.$path;
+        // Free plan (the default) gets a path URL on the main domain, not a subdomain - see Store::url().
+        return $u->store->fresh()->url().$path;
     }
 
     private function form(array $over = []): array

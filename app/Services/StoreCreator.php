@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\PaymentMethod;
+use App\Models\Plan;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
@@ -17,7 +18,7 @@ class StoreCreator
         return DB::transaction(function () use ($user, $slug, $name) {
             $store = Store::create([
                 'user_id' => $user->id, 'slug' => $slug, 'name' => $name,
-                'status' => 'draft', 'theme' => 'minimal',
+                'status' => 'draft', 'theme' => 'minimal', 'plan_id' => Plan::default()->id,
                 'settings' => ['color' => '#4f46e5', 'currency' => 'BDT', 'delivery_charge' => 60],
             ]);
 

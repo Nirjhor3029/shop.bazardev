@@ -23,7 +23,7 @@ class AppearanceController extends Controller
             }
         }
 
-        return view('seller.appearance.edit', ['store' => $store, 'look' => $look, 'rows' => $rows]);
+        return view('seller.appearance.edit', ['store' => $store, 'look' => $look, 'rows' => $rows, 'plan' => $store->activePlan()]);
     }
 
     public function update(Request $request, ImageStore $images)
@@ -50,6 +50,9 @@ class AppearanceController extends Controller
             'sections' => ['required', 'array'],
             'sections.*.order' => ['nullable', 'integer', 'min:0', 'max:99'],
         ]);
+        if (! $store->activePlan()->allowsTheme($data['theme'])) {
+            return back()->withErrors(['theme' => 'This theme is not available on your current plan.'])->withInput();
+        }
 
         $look = $store->look();
         foreach (['logo' => 400, 'banner' => 1600] as $key => $max) {

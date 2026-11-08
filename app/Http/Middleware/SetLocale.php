@@ -10,8 +10,9 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next)
     {
-        // A storefront (STORE.shop...) uses the store's own language, set by ResolveStoreFromHost.
-        if (str_ends_with($request->getHost(), '.'.config('shop.base_domain'))) {
+        // A storefront page (subdomain or path URL) uses the store's own language, set by
+        // ResolveStoreFromHost - which runs before this and binds currentStore - never override it here.
+        if (app()->bound('currentStore') && app('currentStore')) {
             return $next($request);
         }
         $lang = $request->cookie('lang');
