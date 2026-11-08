@@ -44,6 +44,7 @@ class AppearanceController extends Controller
             'facebook' => ['nullable', 'url:https', 'max:200'],
             'whatsapp' => ['nullable', 'regex:/^(?:\+?88)?01[3-9]\d{8}$/'],
             'lang' => ['nullable', 'in:bn,en'],
+            'overlay' => ['nullable', Rule::in(array_keys(Store::OVERLAYS))],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'banner' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'sections' => ['required', 'array'],
@@ -68,7 +69,7 @@ class AppearanceController extends Controller
             ->map(fn ($t) => ['type' => $t, 'on' => $request->boolean("sections.$t.on"), 'order' => (int) ($data['sections'][$t]['order'] ?? 50)])
             ->sortBy('order')->map(fn ($s) => ['type' => $s['type'], 'on' => $s['on']])->values()->all();
 
-        $look = array_merge($look, collect($data)->only(['font', 'announcement', 'hero_title', 'hero_text', 'hero_button', 'about', 'phone', 'email', 'address', 'facebook', 'whatsapp'])->map(fn ($v) => $v ?? '')->all() + ['lang' => $data['lang'] ?? $look['lang']], ['sections' => $sections, 'digits' => $request->boolean('digits')]);
+        $look = array_merge($look, collect($data)->only(['font', 'announcement', 'hero_title', 'hero_text', 'hero_button', 'about', 'phone', 'email', 'address', 'facebook', 'whatsapp'])->map(fn ($v) => $v ?? '')->all() + ['lang' => $data['lang'] ?? $look['lang'], 'overlay' => $data['overlay'] ?? $look['overlay'] ?? 'dark'], ['sections' => $sections, 'digits' => $request->boolean('digits')]);
 
         $store->update([
             'theme' => $data['theme'],

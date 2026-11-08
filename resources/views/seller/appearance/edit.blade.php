@@ -15,8 +15,12 @@
                             <div class="h-14 rounded-lg bg-white border flex items-center px-2 gap-1"><span class="w-6 h-6 rounded-full bg-indigo-500"></span><span class="flex-1 h-2 rounded-full bg-gray-200"></span></div>
                         @elseif ($k === 'bold')
                             <div class="h-14 rounded bg-slate-900 flex items-center px-2 gap-1"><span class="w-6 h-2 bg-indigo-400"></span><span class="flex-1 h-2 bg-slate-600"></span></div>
-                        @else
+                        @elseif ($k === 'boutique')
                             <div class="h-14 rounded-sm bg-[#faf6f2] border border-[#e7e0d8] flex items-center px-2"><span class="font-serif text-[#78716c] text-xs">Aa</span></div>
+                        @elseif ($k === 'vibrant')
+                            <div class="h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-700 flex items-center px-3"><span class="text-white text-xs font-bold bg-white/20 rounded-full px-2 py-0.5">✦ Aa</span></div>
+                        @else
+                            <div class="h-14 border border-gray-900 flex items-center justify-center bg-white"><span class="text-gray-900 text-xs uppercase tracking-widest">Aa</span></div>
                         @endif
                         <p class="mt-2 text-sm font-medium">{{ $label }}</p>
                     </label>
@@ -35,6 +39,8 @@
                     @if ($look['banner'])<img src="{{ $store->fileUrl($look['banner']) }}" class="h-12 my-2 rounded"><label class="text-xs"><input type="checkbox" name="remove_banner" value="1"> remove</label>@endif
                     <input type="file" name="banner" accept="image/jpeg,image/png,image/webp" class="mt-1 text-sm">@error('banner')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             </div>
+            <div><label class="block text-sm font-medium">Banner overlay <span class="text-xs text-gray-400">(Minimal / Bold / Vibrant themes)</span></label>
+                <select name="overlay" class="mt-1 border-gray-300 rounded-md w-full">@foreach (\App\Models\Store::OVERLAYS as $k => $l)<option value="{{ $k }}" @selected(old('overlay', $look['overlay'] ?? 'dark') === $k)>{{ $l }}</option>@endforeach</select></div>
             <div class="grid sm:grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium">Store language</label><select name="lang" class="mt-1 border-gray-300 rounded-md w-full"><option value="bn" @selected(old('lang', $look['lang']) === 'bn')>বাংলা</option><option value="en" @selected(old('lang', $look['lang']) === 'en')>English</option></select></div>
                 <div><label class="block text-sm font-medium">WhatsApp number (customers can order here)</label><input name="whatsapp" value="{{ old('whatsapp', $look['whatsapp']) }}" placeholder="01XXXXXXXXX" class="mt-1 border-gray-300 rounded-md w-full">@error('whatsapp')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>

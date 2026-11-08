@@ -76,7 +76,7 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
 .theme-bold .sf-trust-chip { background:#1e293b; color:#e5e7eb; border:1px solid #334155; }
 /* bold hero: full-bleed image, dark scrim, colour accent rule */
 .sf-hero-bold { position:relative; background: linear-gradient(135deg, var(--c), var(--c-ink)) center/cover no-repeat; border-radius:4px; overflow:hidden; }
-.sf-hero-bold::before { content:''; position:absolute; inset:0; background:rgba(2,6,23,.45); }
+.sf-hero-bold::before { content:''; position:absolute; inset:0; background: var(--hero-ov, rgba(2,6,23,.45)); }
 .sf-hero-bold-inner { position:relative; padding:2.25rem 1.5rem; max-width:34rem; color:#fff; }
 .sf-hero-bold-rule { display:block; width:2.5rem; height:4px; background:#fff; margin-bottom:.9rem; }
 @media (min-width:768px) { .sf-hero-bold-inner { padding:3.5rem 2.5rem; } }
@@ -97,6 +97,43 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
 .sf-hero-boutique-card { background:#fff; margin:0 0; padding:1.5rem; border-radius:2px; box-shadow:0 8px 24px rgba(0,0,0,.06); max-width:30rem; }
 .sf-hero-boutique-card.has-banner { margin-top:-2.5rem; margin-inline:1.25rem; }
 @media (min-width:768px) { .sf-hero-boutique-card { padding:2rem 2.5rem; } .sf-hero-boutique-card.has-banner { margin-top:-3rem; } }
+/* theme: vibrant — playful, saturated, rounded */
+.theme-vibrant { background: linear-gradient(180deg, var(--c-soft), #f9fafb 260px); }
+.theme-vibrant .sf-head { background: linear-gradient(120deg, var(--c), var(--c-dark)); }
+.theme-vibrant .sf-card { border-radius:20px; }
+.theme-vibrant a.sf-card:hover { transform: translateY(-4px); }
+.theme-vibrant .sf-chip { border-radius:999px; border-color: transparent; background: var(--c-soft); color: var(--c-dark); font-weight:600; }
+.theme-vibrant .sf-chip.on { background: var(--c); color:#fff; }
+.theme-vibrant .sf-hero-btn { border-radius:999px; }
+.theme-vibrant .sf-trust-chip { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+/* vibrant hero: rounded gradient banner with a pill kicker */
+.sf-hero-vibrant { border-radius:28px; background: linear-gradient(135deg, var(--c), var(--c-ink)); }
+.sf-hero-vibrant-inner { padding:2rem 1.5rem; max-width:34rem; color:#fff; }
+.sf-hero-kicker { display:inline-block; background:rgba(255,255,255,.22); border-radius:999px; padding:.25rem .85rem; font-size:.75rem; font-weight:700; letter-spacing:.02em; margin-bottom:.9rem; }
+@media (min-width:768px) { .sf-hero-vibrant-inner { padding:3rem 2.5rem; } }
+/* theme: mono — editorial black & white, brand color only as a small accent */
+.theme-mono { background:#fff; color:#18181b; }
+.theme-mono main { padding-top:2.5rem; padding-bottom:2.5rem; }
+.theme-mono .grid { gap:1.5rem; }
+.theme-mono .sf-head { background:#fff; color:#18181b; border-bottom:1px solid #18181b; }
+.theme-mono .sf-pill { background:transparent; border:1px solid #18181b; border-radius:0; color:#18181b; }
+.theme-mono .sf-card { border-radius:0; box-shadow:none; border:1px solid #e4e4e7; }
+.theme-mono a.sf-card:hover { border-color:#18181b; transform:none; box-shadow:none; }
+.theme-mono .sf-chip { border-radius:0; border-color:#18181b; background:#fff; color:#18181b; text-transform:uppercase; font-size:.7rem; letter-spacing:.06em; }
+.theme-mono .sf-chip.on { background:#18181b; color:#fff; border-color:#18181b; }
+.theme-mono .sf-price { color:#18181b; }
+.theme-mono .sf-tag, .theme-mono .sf-tag-new { border-radius:0; }
+.theme-mono .sf-hero-btn { border-radius:0; background:#18181b; color:#fff; }
+.theme-mono .sf-trust-chip { border-radius:0; border:1px solid #18181b; background:#fff; color:#18181b; }
+/* mono hero: centered editorial type, no overlay */
+.sf-hero-mono-img { aspect-ratio:16/6; background-size:cover; background-position:center; border-radius:0; margin-bottom:1.5rem; }
+.sf-hero-mono-text { max-width:36rem; margin-inline:auto; }
+.sf-hero-mono-kicker { display:block; font-size:.7rem; letter-spacing:.15em; text-transform:uppercase; color:#71717a; margin-bottom:.5rem; }
+/* featured strip: horizontal scroll of spotlight products */
+.sf-featured-row { display:flex; gap:.9rem; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; padding-bottom:.25rem; }
+.sf-featured-row::-webkit-scrollbar { display:none; }
+.sf-featured-item { flex:0 0 42%; scroll-snap-align:start; }
+@media (min-width:640px) { .sf-featured-item { flex:0 0 220px; } }
 </style></head>
 <body class="sf theme-{{ $theme }} {{ ($look['font'] ?? 'sans') === 'serif' ? 'font-serif-x' : '' }} antialiased">
 @if (! empty($look['announcement']))<div class="sf-announce">{{ $look['announcement'] }}</div>@endif

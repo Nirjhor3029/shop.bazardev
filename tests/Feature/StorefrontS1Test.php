@@ -116,6 +116,16 @@ class StorefrontS1Test extends TestCase
         $this->get($this->url('/p/'.$p->slug))->assertOk()->assertSee('৳৬০ · ৳২,০০০ এর বেশি হলে ফ্রি')->assertSee('ক্যাশ অন ডেলিভারি');
     }
 
+    public function test_featured_products_show_in_spotlight_strip(): void
+    {
+        $this->store();
+        $p = $this->first();
+        $this->get($this->url('/'))->assertOk()->assertDontSee('নির্বাচিত পণ্য');
+
+        $p->update(['is_featured' => true]);
+        $this->get($this->url('/'))->assertOk()->assertSee('নির্বাচিত পণ্য');
+    }
+
     public function test_appearance_saves_whatsapp_language_digits_and_rejects_bad_number(): void
     {
         $s = $this->store();

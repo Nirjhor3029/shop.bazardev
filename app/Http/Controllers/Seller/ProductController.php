@@ -79,6 +79,7 @@ class ProductController extends Controller
             $data['category_id'] = null;
         }
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_featured'] = $request->boolean('is_featured');
         unset($data['images']);
 
         return $data;

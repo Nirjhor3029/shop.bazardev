@@ -31,6 +31,7 @@
                 <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp" class="mt-1 text-sm">
                 @error('images')<p class="text-sm text-red-600">{{ $message }}</p>@enderror @error('images.*')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             <label class="flex items-center gap-2"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $product->is_active)) class="rounded"> Visible in store</label>
+            <label class="flex items-center gap-2"><input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $product->is_featured)) class="rounded"> Featured (show in the homepage spotlight strip)</label>
             <div class="flex items-center gap-3"><x-primary-button>{{ $editing ? 'Save' : 'Add product' }}</x-primary-button>
                 <a href="{{ route('seller.products.index') }}" class="text-sm text-gray-600">Back</a></div>
         </form>

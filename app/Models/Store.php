@@ -23,13 +23,22 @@ class Store extends Model
         'minimal' => 'Minimal: clean white, rounded cards',
         'bold' => 'Bold: dark header, strong colors',
         'boutique' => 'Boutique: soft, serif headings',
+        'vibrant' => 'Vibrant: playful, rounded, colorful',
+        'mono' => 'Mono: editorial black & white',
     ];
 
     public const FONTS = ['sans' => 'Modern (sans-serif)', 'serif' => 'Classic (serif)'];
 
+    public const OVERLAYS = [
+        'dark' => 'Dark (default, best text contrast)',
+        'soft' => 'Soft (lighter dimming)',
+        'none' => 'None (use a pre-darkened banner)',
+    ];
+
     public const SECTIONS = [
         'hero' => 'Banner / hero',
         'categories' => 'Category buttons',
+        'featured' => 'Featured products (horizontal strip)',
         'products' => 'Product grid',
         'trust' => 'Trust badges (COD/bKash/Nagad icons)',
         'about' => 'About and contact',
@@ -43,7 +52,7 @@ class Store extends Model
             'font' => 'sans', 'announcement' => '', 'hero_title' => '', 'hero_text' => '',
             'hero_button' => $lang === 'bn' ? 'এখনই কিনুন' : 'Shop now',
             'about' => '', 'phone' => '', 'email' => '', 'address' => '', 'facebook' => '',
-            'logo' => null, 'banner' => null, 'whatsapp' => '', 'digits' => true, 'lang' => 'bn',
+            'logo' => null, 'banner' => null, 'whatsapp' => '', 'digits' => true, 'lang' => 'bn', 'overlay' => 'dark',
         ];
 
         $merged = array_merge($defaults, $this->settings['look'] ?? []);

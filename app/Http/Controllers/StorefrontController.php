@@ -17,6 +17,7 @@ class StorefrontController extends Controller
             'categories' => $categories,
             'activeCategory' => $active,
             'products' => Product::with('images')->where('is_active', true)->when($active, fn ($q) => $q->where('category_id', $active->id))->latest()->get(),
+            'featured' => Product::with('images')->where('is_active', true)->where('is_featured', true)->latest()->limit(8)->get(),
             'methods' => \App\Models\PaymentMethod::where('is_active', true)->pluck('type'),
         ]);
     }

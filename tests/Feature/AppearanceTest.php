@@ -87,6 +87,21 @@ class AppearanceTest extends TestCase
         $res->assertSee('Offer &lt;b&gt;now&lt;/b&gt;', false);
     }
 
+    public function test_vibrant_and_mono_themes_render_with_overlay_choice(): void
+    {
+        $a = $this->seller();
+        $this->save($a, ['theme' => 'vibrant', 'overlay' => 'soft'])->assertSessionHasNoErrors();
+        $this->assertSame('soft', $a->store->fresh()->look()['overlay']);
+        app()->forgetInstance('currentStore');
+        $this->get('http://alpha.'.config('shop.base_domain').'/')->assertOk()->assertSee('theme-vibrant', false)->assertSee('sf-hero-vibrant', false);
+
+        $this->app['auth']->forgetGuards();
+        app()->forgetInstance('currentStore');
+        $this->save($a, ['theme' => 'mono', 'overlay' => 'none'])->assertSessionHasNoErrors();
+        app()->forgetInstance('currentStore');
+        $this->get('http://alpha.'.config('shop.base_domain').'/')->assertOk()->assertSee('theme-mono', false)->assertSee('sf-hero-mono-text', false);
+    }
+
     public function test_category_filter(): void
     {
         $a = $this->seller();
