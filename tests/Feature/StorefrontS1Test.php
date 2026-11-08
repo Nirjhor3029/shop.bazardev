@@ -109,6 +109,26 @@ class StorefrontS1Test extends TestCase
         $r->assertDontSee('id="addform"', false);
     }
 
+    public function test_out_of_stock_still_offers_whatsapp_contact(): void
+    {
+        $this->store(['whatsapp' => '01712345678']);
+        $p = $this->first();
+        $p->update(['stock' => 0]);
+        $r = $this->get($this->url('/p/'.$p->slug))->assertOk();
+        $r->assertDontSee('id="addform"', false)->assertSee('স্টক আসলে জানতে WhatsApp করুন');
+    }
+
+    public function test_product_page_has_json_ld_and_no_image_placeholder(): void
+    {
+        $this->store();
+        $p = $this->first();
+        $p->images()->delete();
+        $this->get($this->url('/p/'.$p->slug))->assertOk()
+            ->assertSee('application/ld+json', false)
+            ->assertSee('"@type":"Product"', false)
+            ->assertSee('ছবি নেই');
+    }
+
     public function test_delivery_line_uses_store_settings_and_payment_chips(): void
     {
         $this->store([], ['delivery_charge' => 60, 'free_delivery_over' => 2000]);

@@ -18,4 +18,5 @@ return [
     'pst' => ['unpaid' => 'unpaid', 'verifying' => 'the seller will check it soon', 'paid' => 'paid', 'failed' => 'failed'],
     'wa_msg' => 'Hello, I want to buy: :name :url', 'wa_btn' => 'WhatsApp',
     'new' => 'New', 'trust_note' => 'Secure payment & fast delivery', 'featured' => 'Featured picks',
+    'ask_wa' => 'Ask on WhatsApp when back in stock', 'wa_msg_oos' => 'Hello, I want to know when this will be back in stock: :name :url', 'no_image' => 'No image',
 ];
