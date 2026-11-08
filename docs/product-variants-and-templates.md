@@ -18,15 +18,22 @@
 - **Storefront**: product page-এ option group অনুযায়ী clickable chip picker (Alpine.js) — selection অনুযায়ী price/stock/SKU reactively বদলায়, সঠিক variant_id hidden field দিয়ে add-to-cart form-এ যায়। Landing page-এও (non-combo template) একই picker যুক্ত হবে।
 - কোনো variant না থাকলে সবকিছু ঠিক আগের মতোই কাজ করবে (zero behavior change for existing simple products) — এটা strictly additive।
 
-## ৩. Product Detail Page Template — ৩টা (storefront theme-এর মতো per-store setting)
+## ৩. Product Detail Page Template — ৮টা (storefront theme-এর মতো per-store setting)
 
-নতুন `stores.product_template` কলাম (ডিফল্ট `classic`):
+নতুন `stores.product_template` কলাম (ডিফল্ট `classic`)। User "world-wide সবচেয়ে সুন্দর e-commerce" ১৩টা ব্র্যান্ডের নাম দিয়েছিল (Apple, Tesla, Nike, Gymshark, Zara, ASOS, Net-a-Porter, MUJI, Everlane, Glossier, Kylie Cosmetics, Daraz, Alibaba) — literally ১৩টা আলাদা template না বানিয়ে, একই স্টাইল-এর ব্র্যান্ডগুলো (যেমন Zara/ASOS/Net-a-Porter সবই "editorial fashion") একসাথে করে ৫টা genuinely আলাদা নতুন স্টাইল-ফ্যামিলি বানানো হলো, আগের ৩টার সাথে মিলিয়ে মোট ৮টা। নাম সরাসরি ব্র্যান্ডের বদলে বর্ণনামূলক রাখা হলো (trademark/affiliation misrepresentation এড়াতে), কিন্তু inspiration নিচে উল্লেখ করা আছে:
 
 | Template | Inspiration | Structure |
 |---|---|---|
-| **Classic** | (existing, অপরিবর্তিত) | বর্তমান layout, শুধু variant picker যুক্ত হবে |
-| **Daraz** | daraz.com.bd | Two-column buy-box লেআউট: gallery বাম, ডান পাশে sticky price/variant/qty/CTA card, discount-কে বড় ribbon-এ দেখানো, delivery/payment info card, তারপর description, related products |
-| **Alibaba** | alibaba.com | বড় image + vertical thumbnail rail, tabbed content (Overview/Specifications/Shipping), "Chat on WhatsApp" কে প্রথম CTA হিসেবে (B2B supplier-contact ফিল), trust badge row |
+| **Classic** | (existing, অপরিবর্তিত) | বর্তমান layout + variant picker |
+| **Daraz** | daraz.com.bd | Two-column sticky buy-box, বড় discount ribbon |
+| **Alibaba** | alibaba.com | বড় image + vertical thumbnail rail, tabbed content, chat-first CTA |
+| **Cinematic** | Apple, Tesla | Full-bleed hero (container ভেঙে পুরো width), কেন্দ্রীভূত minimal চ্যাসি, একটাই বড় CTA |
+| **Editorial** | Zara, ASOS, Net-a-Porter/MATCHES | ম্যাগাজিন-স্টাইল দুই-কলাম, serif heading, underline variant selector |
+| **Bold Sport** | Nike, Gymshark | বড় uppercase টাইপ, brand-color block, bold chip-style variant |
+| **Minimal Studio** | MUJI, Everlane | অতি শান্ত, কোনো badge/ribbon/motion নেই, dropdown variant selector |
+| **Playful Beauty** | Glossier, Kylie Cosmetics | brand-color soft block-এ floating image, round swatch (Color option হলে আসল রং দেখায়), পুরো UI rounded-full |
+
+সব template-ই একই server-computed variant/price ডেটা শেয়ার করে (`$variantsData`, `$optionChoices`, `$available`) — কোনো duplicate business logic নেই, শুধু markup/CSS আলাদা।
 
 Seller-এর Appearance পেজে theme picker-এর মতোই swatch প্যাটার্ন দিয়ে বেছে নেওয়া যায়। **Plan দিয়ে gate করা আছে** — `plans.product_templates` কলাম (null = সব allowed, নির্দিষ্ট array = শুধু ওইগুলো) ঠিক `landing_templates`/`storefront_themes`-এর মতোই; Free/Subdomain plan শুধু Classic পায়, Pro সব পায়। Lock করা template seller UI-তে grey-out + "Premium" badge দেখায়, আর server-side-ও enforced। Admin `/admin/plans`-এ পুরোটা configure করতে পারে।
 

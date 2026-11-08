@@ -49,6 +49,11 @@ class Store extends Model
         'classic' => 'Classic: simple, clean product page',
         'daraz' => 'Daraz: sticky buy-box, big discount ribbon',
         'alibaba' => 'Alibaba: large gallery, tabbed details, chat-first',
+        'cinematic' => 'Cinematic: full-bleed hero, minimal chrome (premium tech brand style)',
+        'editorial' => 'Editorial: magazine layout, serif type (fashion brand style)',
+        'bold_sport' => 'Bold Sport: big uppercase type, high energy (sportswear brand style)',
+        'minimal_studio' => 'Minimal Studio: ultra-quiet, generous whitespace (minimalist brand style)',
+        'playful_beauty' => 'Playful Beauty: soft rounded blocks, friendly UI (beauty brand style)',
     ];
 
     public const OVERLAYS = [
