@@ -66,7 +66,9 @@ class LandingPageController extends Controller
             'combo.*.qty' => ['nullable', 'integer', 'min:1', 'max:99'],
             'combo.*.price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'combo.*.label' => ['nullable', 'string', 'max:40'],
-        ]);
+            'pixel_id' => ['nullable', 'string', 'max:30', 'regex:/^\d+$/'],
+            'capi_token' => ['nullable', 'string', 'max:500'],
+        ], ['pixel_id.regex' => 'The Pixel ID should be digits only.']);
         $data['benefits'] = collect(preg_split('/\r?\n/', (string) $request->input('benefits')))->map('trim')->filter()->take(6)->values()->all();
         $data['combos'] = collect($request->input('combo', []))
             ->filter(fn ($row) => filled($row['qty'] ?? null) && ($row['price'] ?? '') !== '')
@@ -74,6 +76,9 @@ class LandingPageController extends Controller
             ->sortBy('qty')->values()->all() ?: null;
         $data['is_published'] = $request->boolean('is_published');
         unset($data['combo']);
+        if (blank($data['capi_token'] ?? null)) {
+            unset($data['capi_token']); // never blank out an already-saved token just because the (masked) field was left empty
+        }
 
         return $data;
     }

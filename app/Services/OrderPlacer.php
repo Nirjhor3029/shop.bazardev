@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendMetaPurchaseEvent;
 use App\Models\LandingPage;
 use App\Models\Order;
 use App\Models\PaymentMethod;
@@ -45,12 +46,17 @@ class OrderPlacer
      */
     public function placeSingle(Store $store, Product $product, int $qty, array $d, ?LandingPage $landingPage = null, ?float $comboPrice = null): Order
     {
-        return $this->createOrder($store, [$product->id => $qty], $d, $landingPage?->id, $comboPrice);
+        $order = $this->createOrder($store, [$product->id => $qty], $d, $landingPage, $comboPrice);
+        if ($landingPage && $landingPage->pixel_id && $landingPage->capi_token) {
+            SendMetaPurchaseEvent::dispatch($order->id);
+        }
+
+        return $order;
     }
 
-    private function createOrder(Store $store, array $raw, array $d, ?int $landingPageId, ?float $comboPrice = null): Order
+    private function createOrder(Store $store, array $raw, array $d, ?LandingPage $landingPage, ?float $comboPrice = null): Order
     {
-        return DB::transaction(function () use ($store, $raw, $d, $landingPageId, $comboPrice) {
+        return DB::transaction(function () use ($store, $raw, $d, $landingPage, $comboPrice) {
             $method = PaymentMethod::where('type', $d['payment_method'])->where('is_active', true)->first();
             if (! $method) {
                 throw ValidationException::withMessages(['payment_method' => 'This payment method is not available.']);
@@ -81,8 +87,10 @@ class OrderPlacer
                 'number' => $this->number(),
                 'token' => Str::random(40),
                 'status' => 'pending',
-                'source' => $landingPageId ? 'landing' : 'storefront',
-                'landing_page_id' => $landingPageId,
+                'source' => $landingPage ? 'landing' : 'storefront',
+                'landing_page_id' => $landingPage?->id,
+                'fbclid' => $d['fbclid'] ?? null,
+                'fbp' => $d['fbp'] ?? null,
                 'payment_method' => $method->type,
                 'payment_status' => $manual ? 'verifying' : 'unpaid',
                 'trx_id' => $manual ? $d['trx_id'] : null,

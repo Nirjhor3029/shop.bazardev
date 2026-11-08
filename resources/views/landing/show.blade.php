@@ -12,6 +12,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+@if ($lp->pixel_id)
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '{{ $lp->pixel_id }}');
+fbq('track', 'PageView');
+fbq('track', 'ViewContent', {content_ids: [{{ \Illuminate\Support\Js::from($product->slug) }}], content_type: 'product', value: {{ (float) $product->currentPrice() }}, currency: {{ \Illuminate\Support\Js::from($cur) }}});
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ $lp->pixel_id }}&ev=PageView&noscript=1" alt=""></noscript>
+@endif
 <style>
 :root { --c: {{ $color }}; --c-dark: color-mix(in srgb, var(--c) 82%, black); --c-soft: color-mix(in srgb, var(--c) 12%, white); }
 body { background:#f9fafb; color:#111827; font-family: 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif; font-feature-settings: 'tnum'; }
@@ -61,6 +72,7 @@ body { background:#f9fafb; color:#111827; font-family: 'Hind Siliguri', ui-sans-
 
     @if ($product->stock > 0)
     <form id="lp-order" method="POST" action="{{ url()->current() }}/order" class="mt-6 lp-card p-4 space-y-4" x-data="{ pm: '{{ old('payment_method', $methods->first()?->type) }}', qty: 1, max: {{ min(99, $product->stock) }} }">@csrf
+        @if ($fbclid)<input type="hidden" name="fbclid" value="{{ $fbclid }}">@endif
         <h2 class="font-semibold text-lg">{{ __('store.place_order') }}</h2>
         @error('cart')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
 

@@ -1,5 +1,16 @@
 @extends('storefront.layout')
 @section('title', __('store.order').' '.$order->number.' - '.$store->name)
+@if ($order->landingPage?->pixel_id)
+@section('head')
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '{{ $order->landingPage->pixel_id }}');
+fbq('track', 'Purchase', {value: {{ (float) $order->total }}, currency: {{ \Illuminate\Support\Js::from($order->currency) }}}, {eventID: {{ \Illuminate\Support\Js::from($order->token) }}});
+</script>
+@endsection
+@endif
 @section('content')
 @php $amount = \App\Support\Fmt::money($order->total); @endphp
 <div class="sf-card p-6 max-w-2xl">

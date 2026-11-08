@@ -47,7 +47,7 @@ class CheckoutController extends Controller
 
     public function order(string $token)
     {
-        $order = Order::with('items')->where('token', $token)->firstOrFail();
+        $order = Order::with(['items', 'landingPage'])->where('token', $token)->firstOrFail();
         $method = PaymentMethod::where('type', $order->payment_method)->first();
 
         return view('storefront.order', ['store' => app('currentStore'), 'order' => $order, 'method' => $method]);

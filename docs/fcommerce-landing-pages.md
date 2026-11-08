@@ -139,9 +139,11 @@ Route::post('/lp/{slug}/order', [LandingPageController::class, 'order'])->middle
 
 1. ✅ **M1 — ভিত্তি (done, 2026-11-08):** migrations + `LandingPageController` + "Classic" টেমপ্লেট + direct order flow (cart ছাড়া, `OrderPlacer::placeSingle()`) + seller builder (basic form) + cross-store ownership protection
 2. ✅ **M2 — Combo + টেমপ্লেট ভ্যারাইটি (done, 2026-11-08):** combo/bundle picker (server-stored price, client কখনো price পাঠাতে পারে না) + Combo ও Video-first (YouTube embed / direct video URL, image fallback) টেমপ্লেট + seller form-এ template picker
-3. **M3 — FB tracking:** Pixel + CAPI + fbclid capture + dedup
+3. ✅ **M3 — FB tracking (done, 2026-11-08):** client Meta Pixel (PageView + ViewContent) + server-side Conversions API Purchase event (queued job, SHA-256 hashed phone/email, `fbc`/`fbp` matching params) + fbclid capture into a hidden field, deduped against the client Pixel via a shared `event_id` (the order token) + per-landing-page Pixel ID/CAPI token (token encrypted at rest, masked in the edit form)
 4. **M4 — SSLCommerz:** real-time gateway payment
 5. **M5 — Courier API:** Steadfast integration first
+
+**Operational note for M3:** the CAPI job is queued (`App\Jobs\SendMetaPurchaseEvent`); production uses the `database` queue driver, so a queue worker (`php artisan queue:work`) must actually be running for these events to send - otherwise they sit in the `jobs` table unsent.
 
 প্রতি ধাপ independently ship করা যাবে — M1 শেষ হলেই seller-রা landing page ব্যবহার শুরু করতে পারবে, বাকিগুলো পরে যুক্ত হবে feature flag ছাড়াই (নতুন column/nullable field, কোনো breaking change নেই)।
 

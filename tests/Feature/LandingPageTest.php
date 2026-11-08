@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\StoreCreator;
 use App\Support\Cart;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class LandingPageTest extends TestCase
@@ -136,5 +137,71 @@ class LandingPageTest extends TestCase
 
         $this->get($this->url($u, '/lp/video-offer'))->assertOk()
             ->assertSee('youtube.com/embed/dQw4w9WgXcQ', false);
+    }
+
+    public function test_pixel_fires_on_page_view_and_fbclid_is_captured_into_a_hidden_field(): void
+    {
+        $u = $this->seller();
+        $p = $this->product($u);
+        $this->actingAs($u)->post(route('seller.landing.store'), [
+            'product_id' => $p->id, 'template' => 'classic', 'headline' => 'Tracked Offer', 'is_published' => '1',
+            'pixel_id' => '1234567890123456',
+        ])->assertSessionHasNoErrors();
+        $this->app['auth']->forgetGuards();
+        app()->forgetInstance('currentStore');
+
+        $this->get($this->url($u, '/lp/tracked-offer?fbclid=abc123'))->assertOk()
+            ->assertSee("fbq('init', '1234567890123456')", false)
+            ->assertSee("fbq('track', 'ViewContent'", false)
+            ->assertSee('name="fbclid" value="abc123"', false);
+    }
+
+    public function test_landing_order_dispatches_a_meta_capi_purchase_event_with_hashed_phone(): void
+    {
+        Http::fake();
+        $u = $this->seller();
+        $p = $this->product($u); // price 500, stock 10
+        $this->actingAs($u)->post(route('seller.landing.store'), [
+            'product_id' => $p->id, 'template' => 'classic', 'headline' => 'Tracked Offer', 'is_published' => '1',
+            'pixel_id' => '1234567890123456', 'capi_token' => 'EAAtestsecret',
+        ])->assertSessionHasNoErrors();
+        $this->app['auth']->forgetGuards();
+        app()->forgetInstance('currentStore');
+
+        $this->post($this->url($u, '/lp/tracked-offer/order'), [
+            'qty' => 1, 'name' => 'Karim', 'phone' => '01712345678', 'address' => 'Dhaka', 'payment_method' => 'cod',
+            'fbclid' => 'abc123',
+        ])->assertStatus(302);
+        $order = Order::withoutGlobalScopes()->latest('id')->firstOrFail();
+
+        Http::assertSent(function ($request) use ($order) {
+            $body = $request->data();
+
+            return $request->url() === 'https://graph.facebook.com/v19.0/1234567890123456/events'
+                && $body['access_token'] === 'EAAtestsecret'
+                && $body['data'][0]['event_id'] === $order->token
+                && $body['data'][0]['event_name'] === 'Purchase'
+                && $body['data'][0]['user_data']['ph'][0] === hash('sha256', '8801712345678')
+                && str_contains($body['data'][0]['user_data']['fbc'], '.abc123');
+        });
+    }
+
+    public function test_capi_token_is_not_wiped_when_left_blank_on_update(): void
+    {
+        $u = $this->seller();
+        $p = $this->product($u);
+        $this->actingAs($u)->post(route('seller.landing.store'), [
+            'product_id' => $p->id, 'template' => 'classic', 'headline' => 'Keep Token', 'is_published' => '1',
+            'capi_token' => 'EAAoriginal',
+        ]);
+        $lp = LandingPage::withoutGlobalScopes()->firstOrFail();
+        $this->assertSame('EAAoriginal', $lp->capi_token);
+
+        $this->actingAs($u)->put(route('seller.landing.update', $lp), [
+            'product_id' => $p->id, 'template' => 'classic', 'headline' => 'Keep Token', 'is_published' => '1',
+            'capi_token' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('EAAoriginal', $lp->fresh()->capi_token);
     }
 }

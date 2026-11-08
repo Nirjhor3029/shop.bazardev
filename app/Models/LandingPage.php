@@ -12,6 +12,8 @@ class LandingPage extends Model
 
     protected $guarded = ['id', 'store_id'];
 
+    protected $hidden = ['capi_token'];
+
     public const TEMPLATES = [
         'classic' => 'Classic: photo, benefits, order form',
         'combo' => 'Combo offer: pick a quantity/price bundle',
@@ -20,7 +22,7 @@ class LandingPage extends Model
 
     protected function casts(): array
     {
-        return ['benefits' => 'array', 'combos' => 'array', 'is_published' => 'boolean'];
+        return ['benefits' => 'array', 'combos' => 'array', 'is_published' => 'boolean', 'capi_token' => 'encrypted'];
     }
 
     public function product(): BelongsTo

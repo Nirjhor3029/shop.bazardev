@@ -46,6 +46,14 @@
                 <p class="text-xs text-gray-500">Leave a row's quantity blank to skip it.</p>
             </div>
 
+            <div class="border-t pt-4 space-y-3"><h3 class="font-semibold">Facebook tracking (optional)</h3>
+                <p class="text-xs text-gray-500">Paste your own Meta Pixel ID and Conversions API token (from your Business Manager) to track ad conversions on this page.</p>
+                <div><label class="block text-sm font-medium text-gray-700">Pixel ID</label>
+                    <input name="pixel_id" value="{{ old('pixel_id', $lp->pixel_id) }}" maxlength="30" placeholder="e.g. 1234567890123456" class="mt-1 border-gray-300 rounded-md w-full">@error('pixel_id')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+                <div><label class="block text-sm font-medium text-gray-700">Conversions API access token</label>
+                    <input name="capi_token" type="password" maxlength="500" placeholder="{{ $editing && $lp->capi_token ? 'Saved - leave blank to keep it' : 'Paste your access token' }}" class="mt-1 border-gray-300 rounded-md w-full">@error('capi_token')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+            </div>
+
             <label class="flex items-center gap-2"><input type="checkbox" name="is_published" value="1" @checked(old('is_published', $lp->is_published)) class="rounded"> Published (page is live)</label>
             @if ($editing && $lp->is_published)<p class="text-sm text-gray-500">Link: <a href="{{ $lp->url() }}" target="_blank" rel="noopener" class="text-indigo-600 underline break-all">{{ $lp->url() }}</a></p>@endif
             <div class="flex items-center gap-3"><x-primary-button>{{ $editing ? 'Save' : 'Create' }}</x-primary-button>
