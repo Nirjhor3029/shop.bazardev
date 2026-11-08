@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Support\Cart;
 use Illuminate\Http\Request;
 
@@ -22,10 +23,17 @@ class CartController extends Controller
 
     public function add(Request $request)
     {
-        $data = $request->validate(['product_id' => ['required', 'integer'], 'qty' => ['nullable', 'integer', 'min:1', 'max:99']]);
+        $data = $request->validate([
+            'product_id' => ['required', 'integer'], 'variant_id' => ['nullable', 'integer'],
+            'qty' => ['nullable', 'integer', 'min:1', 'max:99'],
+        ]);
         $p = Product::where('is_active', true)->findOrFail($data['product_id']);
-        abort_if($p->stock < 1, 422, 'Out of stock.');
-        $this->cart()->add($p->id, $data['qty'] ?? 1);
+        $variant = null;
+        if (! empty($data['variant_id'])) {
+            $variant = ProductVariant::where('product_id', $p->id)->findOrFail($data['variant_id']);
+        }
+        abort_if($p->stockFor($variant) < 1, 422, 'Out of stock.');
+        $this->cart()->add($p->id, $data['qty'] ?? 1, $variant?->id);
 
         return redirect(app('currentStore')->storePath('/cart'))->with('status', __('store.added'));
     }
@@ -33,8 +41,9 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate(['qty' => ['required', 'array'], 'qty.*' => ['integer', 'min:0', 'max:99']]);
-        foreach ($data['qty'] as $id => $qty) {
-            $this->cart()->set((int) $id, (int) $qty);
+        foreach ($data['qty'] as $key => $qty) {
+            [$productId, $variantId] = Cart::parseKey((string) $key);
+            $this->cart()->set($productId, (int) $qty, $variantId);
         }
 
         return redirect(app('currentStore')->storePath('/cart'));

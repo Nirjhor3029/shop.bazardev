@@ -2,7 +2,9 @@
 
 return [
     'cart' => 'কার্ট', 'all' => 'সব', 'no_products' => 'এখনো কোনো পণ্য নেই।', 'out' => 'স্টক শেষ', 'only_left' => 'মাত্র :n টি বাকি',
+    'choose_options' => ':names বেছে নিন।',
     'add_to_cart' => 'কার্টে যোগ করুন', 'order_wa' => 'WhatsApp-এ অর্ডার করুন', 'in_stock' => 'স্টকে আছে', 'qty' => 'পরিমাণ', 'description' => 'বিবরণ',
+    'chat_to_order' => 'অর্ডারের জন্য WhatsApp-এ চ্যাট করুন', 'overview' => 'বিস্তারিত', 'shipping_payment' => 'ডেলিভারি ও পেমেন্ট',
     'related' => 'আরও দেখুন', 'share' => 'শেয়ার করুন', 'copy_link' => 'লিংক কপি', 'copied' => 'লিংক কপি হয়েছে',
     'delivery' => 'ডেলিভারি', 'delivery_charge' => ':amount', 'free_over' => ':amount এর বেশি হলে ফ্রি', 'free_delivery' => 'ডেলিভারি ফ্রি', 'pay' => 'পেমেন্ট',
     'cod' => 'ক্যাশ অন ডেলিভারি', 'bkash' => 'বিকাশ', 'nagad' => 'নগদ', 'rocket' => 'রকেট',

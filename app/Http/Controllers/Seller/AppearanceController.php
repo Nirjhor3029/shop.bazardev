@@ -31,6 +31,7 @@ class AppearanceController extends Controller
         $store = app('currentStore');
         $data = $request->validate([
             'theme' => ['required', Rule::in(array_keys(Store::THEMES))],
+            'product_template' => ['nullable', Rule::in(array_keys(Store::PRODUCT_TEMPLATES))],
             'color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'font' => ['required', Rule::in(array_keys(Store::FONTS))],
             'announcement' => ['nullable', 'string', 'max:140'],
@@ -52,6 +53,10 @@ class AppearanceController extends Controller
         ]);
         if (! $store->activePlan()->allowsTheme($data['theme'])) {
             return back()->withErrors(['theme' => 'This theme is not available on your current plan.'])->withInput();
+        }
+        $productTemplate = $data['product_template'] ?? $store->product_template ?? 'classic';
+        if (! $store->activePlan()->allowsProductTemplate($productTemplate)) {
+            return back()->withErrors(['product_template' => 'This product page template is not available on your current plan.'])->withInput();
         }
 
         $look = $store->look();
@@ -76,6 +81,7 @@ class AppearanceController extends Controller
 
         $store->update([
             'theme' => $data['theme'],
+            'product_template' => $productTemplate,
             'settings' => array_merge($store->settings ?? [], ['color' => $data['color'], 'look' => $look]),
         ]);
 

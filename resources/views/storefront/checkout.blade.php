@@ -33,7 +33,7 @@
 </form>
 <div class="sf-card p-5 h-fit order-1 md:order-2">
     <h2 class="font-semibold mb-3">{{ __('store.summary') }}</h2>
-    @foreach ($lines as $l)<div class="flex justify-between text-sm py-1"><span>{{ $l['product']->name }} × {{ \App\Support\Fmt::digits($l['qty']) }}</span><span>{{ \App\Support\Fmt::money($l['total']) }}</span></div>@endforeach
+    @foreach ($lines as $l)<div class="flex justify-between text-sm py-1"><span>{{ $l['product']->name }}{{ $l['variant'] ? ' ('.$l['variant']->label().')' : '' }} × {{ \App\Support\Fmt::digits($l['qty']) }}</span><span>{{ \App\Support\Fmt::money($l['total']) }}</span></div>@endforeach
     <hr class="my-3">
     <div class="flex justify-between text-sm"><span>{{ __('store.subtotal') }}</span><span>{{ \App\Support\Fmt::money($subtotal) }}</span></div>
     <div class="flex justify-between text-sm"><span>{{ __('store.delivery') }}</span><span>{{ $delivery > 0 ? \App\Support\Fmt::money($delivery) : __('store.free') }}</span></div>

@@ -6,6 +6,7 @@ use App\Models\LandingPage;
 use App\Models\PaymentMethod;
 use App\Models\Plan;
 use App\Models\Product;
+use App\Models\Store;
 use App\Models\User;
 use App\Services\StoreCreator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -141,6 +142,53 @@ class PlanTest extends TestCase
             'theme' => 'boutique', 'color' => '#ff0066', 'font' => 'sans', 'sections' => $sections,
         ])->assertSessionHasNoErrors();
         $this->assertSame('boutique', $u->store->fresh()->theme);
+    }
+
+    public function test_free_plan_blocks_premium_product_templates_pro_plan_allows_them(): void
+    {
+        $u = $this->seller();
+        $sections = ['hero' => ['order' => 10, 'on' => 1]];
+        $this->actingAs($u)->post(route('seller.appearance.update'), [
+            'theme' => 'minimal', 'product_template' => 'daraz', 'color' => '#ff0066', 'font' => 'sans', 'sections' => $sections,
+        ])->assertSessionHasErrors('product_template');
+        $this->assertSame('classic', $u->store->fresh()->product_template);
+
+        $this->upgradeToPro($u->store);
+        $u->refresh(); // $u's own cached "store" relation is now stale - actingAs() reuses this exact object
+        $this->app['auth']->forgetGuards();
+        app()->forgetInstance('currentStore');
+        $this->actingAs($u)->post(route('seller.appearance.update'), [
+            'theme' => 'minimal', 'product_template' => 'alibaba', 'color' => '#ff0066', 'font' => 'sans', 'sections' => $sections,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame('alibaba', $u->store->fresh()->product_template);
+    }
+
+    public function test_each_product_template_renders_with_and_without_variants(): void
+    {
+        $u = $this->seller();
+        $this->upgradeToPro($u->store);
+        $p = Product::withoutGlobalScopes()->where('store_id', $u->store->id)->firstOrFail();
+        $this->actingAs($u)->put(route('seller.products.update', $p), [
+            'name' => $p->name, 'price' => $p->price, 'stock' => $p->stock,
+            'option1_name' => 'Color', 'option1_values' => 'Red, Blue', 'generate_variants' => '1',
+        ]);
+        $withVariants = Product::withoutGlobalScopes()->where('id', $p->id)->firstOrFail();
+        $plain = Product::withoutGlobalScopes()->where('store_id', $u->store->id)->where('id', '!=', $p->id)->firstOrFail();
+
+        foreach (array_keys(Store::PRODUCT_TEMPLATES) as $template) {
+            $this->actingAs($u)->post(route('seller.appearance.update'), [
+                'theme' => 'minimal', 'product_template' => $template, 'color' => '#ff0066', 'font' => 'sans',
+                'sections' => ['hero' => ['order' => 10, 'on' => 1]],
+            ])->assertSessionHasNoErrors();
+            $this->app['auth']->forgetGuards();
+            app()->forgetInstance('currentStore');
+
+            $this->get($this->url($u, '/p/'.$withVariants->slug))->assertOk()->assertSee('Color');
+            $this->get($this->url($u, '/p/'.$plain->slug))->assertOk();
+
+            $this->actingAs($u);
+            app()->forgetInstance('currentStore');
+        }
     }
 
     public function test_free_plan_cannot_activate_sslcommerz_even_with_credentials(): void

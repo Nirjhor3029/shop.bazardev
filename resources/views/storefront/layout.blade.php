@@ -45,6 +45,10 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
 .sf-tag { display:inline-block; background:#fef2f2; color:#b91c1c; font-weight:700; font-size:.75rem; border-radius:6px; padding:.1rem .45rem; }
 .sf-tag-new { display:inline-block; background:#ecfdf5; color:#047857; font-weight:700; font-size:.75rem; border-radius:6px; padding:.1rem .45rem; }
 .sf-trust-chip { display:inline-flex; align-items:center; background: var(--c-soft); color: var(--c-dark); border-radius:999px; padding:.35rem .9rem; font-size:.78rem; font-weight:600; }
+/* product-page templates: Daraz-style discount ribbon, Alibaba-style tab buttons */
+.sf-ribbon { position:absolute; top:.6rem; left:.6rem; z-index:10; background:#ee4d2d; color:#fff; font-weight:800; font-size:.95rem; padding:.3rem .6rem; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,.15); }
+.sf-tab { padding:.6rem 1rem; font-weight:600; font-size:.9rem; color:#6b7280; border-bottom:2px solid transparent; }
+.sf-tab.on { color: var(--c); border-color: var(--c); }
 .sf-chips-row { display:flex; gap:.5rem; overflow-x:auto; padding-bottom:.25rem; scrollbar-width:none; }
 .sf-chips-row::-webkit-scrollbar { display:none; }
 .sf-gallery { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; border-radius:12px; background:#fff; }

@@ -75,7 +75,7 @@ class LandingPageController extends Controller
             'pixel_id' => ['nullable', 'string', 'max:30', 'regex:/^\d+$/'],
             'capi_token' => ['nullable', 'string', 'max:500'],
         ], ['pixel_id.regex' => 'The Pixel ID should be digits only.']);
-        $data['benefits'] = collect(preg_split('/\r?\n/', (string) $request->input('benefits')))->map('trim')->filter()->take(6)->values()->all();
+        $data['benefits'] = collect(preg_split('/\r?\n/', (string) $request->input('benefits')))->map(fn ($v) => trim($v))->filter()->take(6)->values()->all();
         $data['combos'] = collect($request->input('combo', []))
             ->filter(fn ($row) => filled($row['qty'] ?? null) && ($row['price'] ?? '') !== '')
             ->map(fn ($row) => ['qty' => (int) $row['qty'], 'price' => (float) $row['price'], 'label' => trim($row['label'] ?? '') ?: null])

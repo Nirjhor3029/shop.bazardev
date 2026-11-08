@@ -28,6 +28,20 @@
                 @endforeach
                 </div>
             @error('theme')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+
+            <div x-data="{ pt: '{{ old('product_template', $store->product_template) }}' }">
+                <p class="text-sm font-medium mb-2">Product details page template</p>
+                <div class="grid sm:grid-cols-3 gap-3">
+                @foreach (\App\Models\Store::PRODUCT_TEMPLATES as $k => $label)
+                    @php $ptLocked = ! $plan->allowsProductTemplate($k); @endphp
+                    <label class="block border rounded-md p-3 text-sm {{ $ptLocked ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer' }}" :class="pt === '{{ $k }}' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'" @if (! $ptLocked) @click="pt = '{{ $k }}'" @endif>
+                        <input type="radio" name="product_template" value="{{ $k }}" class="hidden" x-model="pt" @disabled($ptLocked)>
+                        {{ $label }} @if ($ptLocked)<span class="text-amber-600 font-medium">(Premium)</span>@endif
+                    </label>
+                @endforeach
+                </div>
+            @error('product_template')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium">Main color</label><input type="color" name="color" value="{{ old('color', $store->settings['color'] ?? '#4f46e5') }}" class="mt-1 h-10 w-20">@error('color')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
                 <div><label class="block text-sm font-medium">Font</label><select name="font" class="mt-1 border-gray-300 rounded-md">@foreach (\App\Models\Store::FONTS as $k => $l)<option value="{{ $k }}" @selected(old('font', $look['font']) === $k)>{{ $l }}</option>@endforeach</select></div>

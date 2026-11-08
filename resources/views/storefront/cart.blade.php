@@ -9,8 +9,8 @@
         @foreach ($lines as $l)
             <div class="p-4 flex items-center gap-3">
                 <div class="w-16 h-16 bg-gray-100 rounded overflow-hidden shrink-0">@if ($l['product']->coverUrl())<img src="{{ $l['product']->coverUrl() }}" class="w-full h-full object-cover" alt="">@endif</div>
-                <div class="flex-1 min-w-0"><p class="font-medium truncate">{{ $l['product']->name }}</p><p class="text-sm text-gray-500">{{ \App\Support\Fmt::money($l['price']) }}</p></div>
-                <input type="number" name="qty[{{ $l['product']->id }}]" value="{{ $l['qty'] }}" min="0" max="{{ min(99, $l['product']->stock) }}" class="w-16 border-gray-300 rounded-md text-center" aria-label="{{ __('store.qty') }}">
+                <div class="flex-1 min-w-0"><p class="font-medium truncate">{{ $l['product']->name }}</p>@if ($l['variant'])<p class="text-xs text-gray-500">{{ $l['variant']->label() }}</p>@endif<p class="text-sm text-gray-500">{{ \App\Support\Fmt::money($l['price']) }}</p></div>
+                <input type="number" name="qty[{{ $l['product']->id }}{{ $l['variant'] ? ':'.$l['variant']->id : '' }}]" value="{{ $l['qty'] }}" min="0" max="{{ min(99, $l['product']->stockFor($l['variant'])) }}" class="w-16 border-gray-300 rounded-md text-center" aria-label="{{ __('store.qty') }}">
                 <p class="w-20 text-right font-semibold">{{ \App\Support\Fmt::money($l['total']) }}</p>
             </div>
         @endforeach

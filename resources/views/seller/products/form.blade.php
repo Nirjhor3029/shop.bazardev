@@ -33,6 +33,39 @@
                 @error('images')<p class="text-sm text-red-600">{{ $message }}</p>@enderror @error('images.*')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             <label class="flex items-center gap-2"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $product->is_active)) class="rounded"> Visible in store</label>
             <label class="flex items-center gap-2"><input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $product->is_featured)) class="rounded"> Featured (show in the homepage spotlight strip)</label>
+
+            @if ($editing)
+            <div class="border-t pt-4 space-y-3"><h3 class="font-semibold">Variants (e.g. Color, Size)</h3>
+                <p class="text-xs text-gray-500">Set up to 3 option types with comma-separated values, then "Generate" to build the combination list below. Existing combos keep their price/stock when you regenerate.</p>
+                @php $groupNames = array_keys($optionGroups); @endphp
+                @for ($i = 1; $i <= 3; $i++)
+                    @php $gname = $groupNames[$i - 1] ?? ''; $gvalues = $gname ? implode(', ', $optionGroups[$gname]) : ''; @endphp
+                    <div class="flex gap-2">
+                        <input name="option{{ $i }}_name" value="{{ old("option{$i}_name", $gname) }}" placeholder="Option {{ $i }} name (e.g. Color)" class="border-gray-300 rounded-md w-40">
+                        <input name="option{{ $i }}_values" value="{{ old("option{$i}_values", $gvalues) }}" placeholder="Values, comma separated (e.g. Red, Blue, Black)" class="border-gray-300 rounded-md flex-1">
+                    </div>
+                @endfor
+                @error('option1_name')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+                <button type="submit" name="generate_variants" value="1" class="text-sm bg-gray-700 text-white px-3 py-1.5 rounded-md">Generate variants</button>
+
+                @if ($product->variants->count())
+                    <p class="text-sm font-medium text-gray-700 mt-3">{{ $product->variants->count() }} combination(s) - blank price/sale price means it uses the product's own price above.</p>
+                    <div class="space-y-2">
+                        @foreach ($product->variants as $v)
+                            <div class="flex items-center gap-2 border rounded-md p-2 text-sm">
+                                <span class="w-32 shrink-0 truncate" title="{{ $v->label() }}">{{ $v->label() }}</span>
+                                <input type="number" step="0.01" min="0" name="variants[{{ $v->id }}][price]" value="{{ old("variants.{$v->id}.price", $v->price) }}" placeholder="Price" class="border-gray-300 rounded-md w-20">
+                                <input type="number" step="0.01" min="0" name="variants[{{ $v->id }}][sale_price]" value="{{ old("variants.{$v->id}.sale_price", $v->sale_price) }}" placeholder="Sale" class="border-gray-300 rounded-md w-20">
+                                <input type="number" min="0" name="variants[{{ $v->id }}][stock]" value="{{ old("variants.{$v->id}.stock", $v->stock) }}" placeholder="Stock" class="border-gray-300 rounded-md w-16">
+                                <input name="variants[{{ $v->id }}][sku]" value="{{ old("variants.{$v->id}.sku", $v->sku) }}" placeholder="SKU" class="border-gray-300 rounded-md w-20">
+                                <label class="flex items-center gap-1 text-xs text-red-600 shrink-0"><input type="checkbox" name="variants[{{ $v->id }}][delete]" value="1" class="rounded"> remove</label>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+            @endif
+
             <div class="flex items-center gap-3"><x-primary-button>{{ $editing ? 'Save' : 'Add product' }}</x-primary-button>
                 <a href="{{ route('seller.products.index') }}" class="text-sm text-gray-600">Back</a></div>
         </form>

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Services\ImageStore;
+use App\Services\VariantGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -20,7 +21,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('seller.products.form', ['product' => new Product(['is_active' => true, 'stock' => 0]), 'categories' => Category::orderBy('name')->get()]);
+        return view('seller.products.form', ['product' => new Product(['is_active' => true, 'stock' => 0]), 'categories' => Category::orderBy('name')->get(), 'optionGroups' => []]);
     }
 
     public function store(Request $request, ImageStore $images)
@@ -39,11 +40,20 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        return view('seller.products.form', ['product' => $product->load('images'), 'categories' => Category::orderBy('name')->get()]);
+        $product->load('images', 'variants');
+
+        return view('seller.products.form', ['product' => $product, 'categories' => Category::orderBy('name')->get(), 'optionGroups' => VariantGenerator::groupsFor($product)]);
     }
 
-    public function update(Request $request, Product $product, ImageStore $images)
+    public function update(Request $request, Product $product, ImageStore $images, VariantGenerator $variants)
     {
+        if ($request->has('generate_variants')) {
+            $product->load('variants');
+            $variants->generate($product, $request->all());
+
+            return back()->with('status', 'Variant options updated - set price/stock below, then Save.');
+        }
+
         $product->update($this->validated($request));
         foreach ($request->input('remove_images', []) as $id) {
             if ($img = ProductImage::where('product_id', $product->id)->find($id)) {
@@ -52,6 +62,7 @@ class ProductController extends Controller
             }
         }
         $this->addImages($request, $product, $images);
+        $this->syncVariantRows($request, $product);
         $product->update(['is_sample' => false]);
 
         return back()->with('status', 'Saved.');
@@ -88,6 +99,35 @@ class ProductController extends Controller
         unset($data['images']);
 
         return $data;
+    }
+
+    private function syncVariantRows(Request $request, Product $product): void
+    {
+        $rows = $request->validate([
+            'variants' => ['nullable', 'array'],
+            'variants.*.price' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'variants.*.sale_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.stock' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'variants.*.sku' => ['nullable', 'string', 'max:60'],
+            'variants.*.delete' => ['nullable', 'boolean'],
+        ])['variants'] ?? [];
+        foreach ($rows as $id => $row) {
+            $variant = $product->variants()->find($id);
+            if (! $variant) {
+                continue;
+            }
+            if ($request->boolean("variants.$id.delete")) {
+                $variant->delete();
+
+                continue;
+            }
+            $variant->update([
+                'price' => filled($row['price'] ?? null) ? $row['price'] : null,
+                'sale_price' => filled($row['sale_price'] ?? null) ? $row['sale_price'] : null,
+                'stock' => (int) ($row['stock'] ?? 0),
+                'sku' => $row['sku'] ?? null,
+            ]);
+        }
     }
 
     private function addImages(Request $request, Product $product, ImageStore $images): void

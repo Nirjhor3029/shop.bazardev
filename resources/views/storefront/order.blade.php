@@ -20,7 +20,7 @@ fbq('track', 'Purchase', {value: {{ (float) $order->total }}, currency: {{ \Illu
     @if ($order->payment_method === 'cod')<p class="mt-3 text-sm">{{ __('store.pay_cod_note', ['amount' => $amount]) }}</p>
     @elseif ($order->payment_method === 'sslcommerz')<p class="mt-3 text-sm">{{ $order->payment_status === 'paid' ? __('store.pay_gateway_paid') : __('store.pay_gateway_unpaid') }}</p>
     @else<p class="mt-3 text-sm">{{ __('store.pay_manual_note', ['method' => __('store.'.$order->payment_method), 'trx' => $order->trx_id, 'state' => __('store.pst.'.$order->payment_status)]) }}</p>@endif
-    <div class="mt-5 divide-y">@foreach ($order->items as $i)<div class="py-2 flex justify-between text-sm"><span>{{ $i->name }} × {{ \App\Support\Fmt::digits($i->quantity) }}</span><span>{{ \App\Support\Fmt::money($i->line_total) }}</span></div>@endforeach</div>
+    <div class="mt-5 divide-y">@foreach ($order->items as $i)<div class="py-2 flex justify-between text-sm"><span>{{ $i->name }}{{ $i->variant_label ? ' ('.$i->variant_label.')' : '' }} × {{ \App\Support\Fmt::digits($i->quantity) }}</span><span>{{ \App\Support\Fmt::money($i->line_total) }}</span></div>@endforeach</div>
     <div class="mt-3 text-sm space-y-1"><div class="flex justify-between"><span>{{ __('store.delivery') }}</span><span>{{ \App\Support\Fmt::money($order->delivery_charge) }}</span></div>
         <div class="flex justify-between font-semibold"><span>{{ __('store.total') }}</span><span>{{ $amount }}</span></div></div>
     <p class="mt-5 text-xs text-gray-500">{{ __('store.deliver_to') }}: {{ $order->address }}<br>{{ __('store.save_link') }}</p>

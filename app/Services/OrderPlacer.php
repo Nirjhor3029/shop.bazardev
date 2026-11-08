@@ -7,6 +7,7 @@ use App\Models\LandingPage;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Store;
 use App\Support\Cart;
 use Illuminate\Support\Facades\DB;
@@ -44,9 +45,10 @@ class OrderPlacer
      * $comboPrice, when given, is a seller-configured bundle total for this exact $qty
      * (e.g. "2 for 900"), looked up server-side - never a price the buyer can submit.
      */
-    public function placeSingle(Store $store, Product $product, int $qty, array $d, ?LandingPage $landingPage = null, ?float $comboPrice = null): Order
+    public function placeSingle(Store $store, Product $product, int $qty, array $d, ?LandingPage $landingPage = null, ?float $comboPrice = null, ?ProductVariant $variant = null): Order
     {
-        $order = $this->createOrder($store, [$product->id => $qty], $d, $landingPage, $comboPrice);
+        $key = $variant ? "{$product->id}:{$variant->id}" : (string) $product->id;
+        $order = $this->createOrder($store, [$key => $qty], $d, $landingPage, $comboPrice);
         // sslcommerz hasn't been paid yet at this point - SslcommerzGateway::confirm() dispatches this
         // itself once the payment is actually validated, so a failed/abandoned payment is never counted.
         if ($order->payment_method !== 'sslcommerz' && $landingPage && $landingPage->pixel_id && $landingPage->capi_token) {
@@ -69,18 +71,24 @@ class OrderPlacer
             }
 
             // lock the rows so two buyers cannot take the last item together
-            $products = Product::where('is_active', true)->whereIn('id', array_keys($raw))->lockForUpdate()->get()->keyBy('id');
+            $parsed = collect(array_keys($raw))->map(fn ($k) => Cart::parseKey((string) $k));
+            $products = Product::where('is_active', true)->whereIn('id', $parsed->pluck(0)->unique())->lockForUpdate()->get()->keyBy('id');
+            $variantIds = $parsed->pluck(1)->filter()->unique();
+            $variants = $variantIds->isNotEmpty() ? ProductVariant::whereIn('id', $variantIds)->lockForUpdate()->get()->keyBy('id') : collect();
             $subtotal = 0.0;
             $rows = [];
-            foreach ($raw as $id => $qty) {
-                $p = $products->get($id);
-                if (! $p || $p->stock < $qty) {
+            foreach ($raw as $key => $qty) {
+                [$productId, $variantId] = Cart::parseKey((string) $key);
+                $p = $products->get($productId);
+                $variant = $variantId ? $variants->get($variantId) : null;
+                $stock = $p ? $p->stockFor($variant) : 0;
+                if (! $p || ($variantId && ! $variant) || $stock < $qty) {
                     throw ValidationException::withMessages(['cart' => ($p?->name ?? 'A product').' is out of stock or has less stock than you asked.']);
                 }
-                $line = $comboPrice !== null ? round($comboPrice, 2) : round((float) $p->currentPrice() * $qty, 2);
+                $line = $comboPrice !== null ? round($comboPrice, 2) : round((float) $p->priceFor($variant) * $qty, 2);
                 $price = round($line / $qty, 2);
                 $subtotal += $line;
-                $rows[] = [$p, $qty, $price, $line];
+                $rows[] = [$p, $variant, $qty, $price, $line];
             }
             $subtotal = round($subtotal, 2);
             $delivery = self::deliveryCharge($store, $subtotal);
@@ -107,9 +115,12 @@ class OrderPlacer
                 'delivery_charge' => $delivery,
                 'total' => round($subtotal + $delivery, 2),
             ]);
-            foreach ($rows as [$p, $qty, $price, $line]) {
-                $order->items()->create(['product_id' => $p->id, 'name' => $p->name, 'unit_price' => $price, 'quantity' => $qty, 'line_total' => $line]);
-                $p->decrement('stock', $qty);
+            foreach ($rows as [$p, $variant, $qty, $price, $line]) {
+                $order->items()->create([
+                    'product_id' => $p->id, 'variant_id' => $variant?->id, 'variant_label' => $variant?->label(),
+                    'name' => $p->name, 'unit_price' => $price, 'quantity' => $qty, 'line_total' => $line,
+                ]);
+                $variant ? $variant->decrement('stock', $qty) : $p->decrement('stock', $qty);
             }
 
             return $order;
@@ -132,7 +143,9 @@ class OrderPlacer
         DB::transaction(function () use ($order, $to) {
             if ($to === 'cancelled') {
                 foreach ($order->items as $item) {
-                    if ($item->product_id) {
+                    if ($item->variant_id) {
+                        ProductVariant::whereKey($item->variant_id)->increment('stock', $item->quantity);
+                    } elseif ($item->product_id) {
                         Product::whereKey($item->product_id)->increment('stock', $item->quantity);
                     }
                 }

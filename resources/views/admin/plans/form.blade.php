@@ -3,7 +3,7 @@
     <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $editing ? 'Edit plan' : 'New plan' }}</h2></x-slot>
     <div class="py-8"><div class="max-w-2xl mx-auto px-4 sm:px-6 space-y-4">
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
-        <form method="POST" action="{{ $editing ? route('admin.plans.update', $plan) : route('admin.plans.store') }}" class="bg-white shadow-sm sm:rounded-lg p-6 space-y-4" x-data="{ allTemplates: {{ old('all_templates', $plan->landing_templates === null) ? 'true' : 'false' }}, allThemes: {{ old('all_themes', $plan->storefront_themes === null) ? 'true' : 'false' }} }">
+        <form method="POST" action="{{ $editing ? route('admin.plans.update', $plan) : route('admin.plans.store') }}" class="bg-white shadow-sm sm:rounded-lg p-6 space-y-4" x-data="{ allTemplates: {{ old('all_templates', $plan->landing_templates === null) ? 'true' : 'false' }}, allThemes: {{ old('all_themes', $plan->storefront_themes === null) ? 'true' : 'false' }}, allProductTemplates: {{ old('all_product_templates', $plan->product_templates === null) ? 'true' : 'false' }} }">
             @csrf @if ($editing) @method('PUT') @endif
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium">Name</label><input name="name" value="{{ old('name', $plan->name) }}" required class="mt-1 border-gray-300 rounded-md w-full">@error('name')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
@@ -30,6 +30,15 @@
                 <div class="mt-2 grid grid-cols-2 gap-1" x-show="!allThemes">
                     @foreach (\App\Models\Store::THEMES as $k => $label)
                         <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="storefront_themes[]" value="{{ $k }}" class="rounded" @checked(in_array($k, old('storefront_themes', $plan->storefront_themes ?? [])))> {{ $label }}</label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div><label class="block text-sm font-medium mb-1">Product detail page templates allowed</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" value="1" x-model="allProductTemplates" name="all_product_templates" class="rounded"> All templates (including any added later)</label>
+                <div class="mt-2 grid grid-cols-2 gap-1" x-show="!allProductTemplates">
+                    @foreach (\App\Models\Store::PRODUCT_TEMPLATES as $k => $label)
+                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="product_templates[]" value="{{ $k }}" class="rounded" @checked(in_array($k, old('product_templates', $plan->product_templates ?? [])))> {{ $label }}</label>
                     @endforeach
                 </div>
             </div>

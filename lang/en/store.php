@@ -2,7 +2,9 @@
 
 return [
     'cart' => 'Cart', 'all' => 'All', 'no_products' => 'No products yet.', 'out' => 'Out of stock', 'only_left' => 'Only :n left',
+    'choose_options' => 'Please choose :names.',
     'add_to_cart' => 'Add to cart', 'order_wa' => 'Order on WhatsApp', 'in_stock' => 'In stock', 'qty' => 'Quantity', 'description' => 'Description',
+    'chat_to_order' => 'Chat on WhatsApp to order', 'overview' => 'Overview', 'shipping_payment' => 'Shipping & Payment',
     'related' => 'You may also like', 'share' => 'Share', 'copy_link' => 'Copy link', 'copied' => 'Link copied',
     'delivery' => 'Delivery', 'delivery_charge' => ':amount', 'free_over' => 'free over :amount', 'free_delivery' => 'Free delivery', 'pay' => 'Payment',
     'cod' => 'Cash on delivery', 'bkash' => 'bKash', 'nagad' => 'Nagad', 'rocket' => 'Rocket',

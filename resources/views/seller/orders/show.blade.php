@@ -11,7 +11,7 @@
                 @if ($order->trx_id) · TrxID <b>{{ $order->trx_id }}</b> from {{ $order->payer_number }}@endif</p>
         </div>
         <div class="bg-white shadow-sm sm:rounded-lg p-6 text-sm">
-            @foreach ($order->items as $i)<div class="flex justify-between py-1"><span>{{ $i->name }} × {{ $i->quantity }}</span><span>{{ number_format($i->line_total) }}</span></div>@endforeach
+            @foreach ($order->items as $i)<div class="flex justify-between py-1"><span>{{ $i->name }}{{ $i->variant_label ? ' ('.$i->variant_label.')' : '' }} × {{ $i->quantity }}</span><span>{{ number_format($i->line_total) }}</span></div>@endforeach
             <hr class="my-2"><div class="flex justify-between"><span>Delivery</span><span>{{ number_format($order->delivery_charge) }}</span></div>
             <div class="flex justify-between font-semibold"><span>Total</span><span>{{ $order->currency }} {{ number_format($order->total) }}</span></div>
         </div>

@@ -14,7 +14,7 @@ class Plan extends Model
     {
         return [
             'price' => 'decimal:2',
-            'landing_templates' => 'array', 'storefront_themes' => 'array',
+            'landing_templates' => 'array', 'storefront_themes' => 'array', 'product_templates' => 'array',
             'allow_subdomain' => 'boolean', 'allow_sslcommerz' => 'boolean', 'allow_pixel_tracking' => 'boolean',
             'remove_branding' => 'boolean', 'is_default' => 'boolean', 'is_active' => 'boolean',
         ];
@@ -39,5 +39,10 @@ class Plan extends Model
     public function allowsTheme(string $key): bool
     {
         return $this->storefront_themes === null || in_array($key, $this->storefront_themes, true);
+    }
+
+    public function allowsProductTemplate(string $key): bool
+    {
+        return $this->product_templates === null || in_array($key, $this->product_templates, true);
     }
 }

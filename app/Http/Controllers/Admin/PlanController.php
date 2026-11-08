@@ -74,10 +74,13 @@ class PlanController extends Controller
             'landing_templates.*' => ['string', 'in:'.implode(',', array_keys(LandingPage::TEMPLATES))],
             'storefront_themes' => ['nullable', 'array'],
             'storefront_themes.*' => ['string', 'in:'.implode(',', array_keys(Store::THEMES))],
+            'product_templates' => ['nullable', 'array'],
+            'product_templates.*' => ['string', 'in:'.implode(',', array_keys(Store::PRODUCT_TEMPLATES))],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
         ]);
         $data['landing_templates'] = $request->boolean('all_templates') ? null : ($data['landing_templates'] ?? []);
         $data['storefront_themes'] = $request->boolean('all_themes') ? null : ($data['storefront_themes'] ?? []);
+        $data['product_templates'] = $request->boolean('all_product_templates') ? null : ($data['product_templates'] ?? []);
         $data['allow_subdomain'] = $request->boolean('allow_subdomain');
         $data['allow_sslcommerz'] = $request->boolean('allow_sslcommerz');
         $data['allow_pixel_tracking'] = $request->boolean('allow_pixel_tracking');

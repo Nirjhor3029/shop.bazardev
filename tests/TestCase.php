@@ -18,7 +18,13 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
-    /** Most feature tests create a store on the default (Free) plan; use this when a test exercises a paid-plan-only feature. */
+    /**
+     * Most feature tests create a store on the default (Free) plan; use this when a test
+     * exercises a paid-plan-only feature. If you call this mid-test on a User/Store you've
+     * already used with actingAs()/accessed ->store on, also call $user->refresh() before the
+     * next actingAs($user) - actingAs() reuses that exact object, including its now-stale
+     * cached "store" relation, so the plan change won't be visible until it's refreshed.
+     */
     protected function upgradeToPro(Store $store): Store
     {
         $store->update(['plan_id' => Plan::where('slug', 'pro')->firstOrFail()->id]);

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Store extends Model
 {
-    protected $fillable = ['user_id', 'slug', 'name', 'status', 'theme', 'settings', 'plan_id', 'plan_expires_at'];
+    protected $fillable = ['user_id', 'slug', 'name', 'status', 'theme', 'product_template', 'settings', 'plan_id', 'plan_expires_at'];
 
     protected function casts(): array
     {
@@ -44,6 +44,12 @@ class Store extends Model
     ];
 
     public const FONTS = ['sans' => 'Modern (sans-serif)', 'serif' => 'Classic (serif)'];
+
+    public const PRODUCT_TEMPLATES = [
+        'classic' => 'Classic: simple, clean product page',
+        'daraz' => 'Daraz: sticky buy-box, big discount ribbon',
+        'alibaba' => 'Alibaba: large gallery, tabbed details, chat-first',
+    ];
 
     public const OVERLAYS = [
         'dark' => 'Dark (default, best text contrast)',
