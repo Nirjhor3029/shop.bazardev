@@ -62,6 +62,6 @@ class LandingPageController extends Controller
             }
         }
 
-        return redirect('/order/'.$order->token);
+        return redirect($store->storePath('/order/'.$order->token));
     }
 }

@@ -16,7 +16,7 @@ class CheckoutController extends Controller
         $store = app('currentStore');
         $cart = new Cart($store->id);
         if ($cart->lines()->isEmpty()) {
-            return redirect('/cart');
+            return redirect($store->storePath('/cart'));
         }
         $sub = $cart->subtotal();
 
@@ -50,7 +50,7 @@ class CheckoutController extends Controller
             }
         }
 
-        return redirect('/order/'.$order->token);
+        return redirect($store->storePath('/order/'.$order->token));
     }
 
     public function order(string $token)

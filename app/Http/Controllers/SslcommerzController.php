@@ -19,7 +19,7 @@ class SslcommerzController extends Controller
             }
         }
 
-        return redirect('/order/'.$order->token);
+        return redirect(app('currentStore')->storePath('/order/'.$order->token));
     }
 
     public function fail(string $token)
@@ -29,12 +29,13 @@ class SslcommerzController extends Controller
             $order->update(['payment_status' => 'failed']);
         }
 
-        return redirect('/order/'.$order->token);
+        return redirect(app('currentStore')->storePath('/order/'.$order->token));
     }
 
     public function cancel(string $token)
     {
-        return redirect('/order/'.$token); // left as unpaid - the buyer can retry or pick another method by contacting the seller
+        // left as unpaid - the buyer can retry or pick another method by contacting the seller
+        return redirect(app('currentStore')->storePath('/order/'.$token));
     }
 
     /**

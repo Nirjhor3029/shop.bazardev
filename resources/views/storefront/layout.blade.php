@@ -138,8 +138,8 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
 <body class="sf theme-{{ $theme }} {{ ($look['font'] ?? 'sans') === 'serif' ? 'font-serif-x' : '' }} antialiased">
 @if (! empty($look['announcement']))<div class="sf-announce">{{ $look['announcement'] }}</div>@endif
 <header class="sf-head"><div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-    <a href="/" class="flex items-center gap-3 text-lg font-bold min-w-0">@if ($logo)<img src="{{ $logo }}" alt="" class="h-9 w-auto max-w-[120px] object-contain">@endif<span class="truncate">{{ $store->name }}</span></a>
-    <a href="/cart" class="sf-pill text-sm px-3 py-1.5 flex items-center gap-1.5 shrink-0" aria-label="{{ __('store.cart') }}">
+    <a href="{{ $store->storePath('/') }}" class="flex items-center gap-3 text-lg font-bold min-w-0">@if ($logo)<img src="{{ $logo }}" alt="" class="h-9 w-auto max-w-[120px] object-contain">@endif<span class="truncate">{{ $store->name }}</span></a>
+    <a href="{{ $store->storePath('/cart') }}" class="sf-pill text-sm px-3 py-1.5 flex items-center gap-1.5 shrink-0" aria-label="{{ __('store.cart') }}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
         <span>{{ __('store.cart') }}</span><span class="font-bold">{{ \App\Support\Fmt::digits($cartCount) }}</span></a></div></header>
 <main class="max-w-5xl mx-auto px-4 py-6">

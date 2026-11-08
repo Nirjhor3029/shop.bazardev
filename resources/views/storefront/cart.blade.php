@@ -3,9 +3,9 @@
 @section('content')
 <h1 class="text-2xl font-bold mb-4">{{ __('store.cart_title') }}</h1>
 @if ($lines->isEmpty())
-    <p class="text-gray-500">{{ __('store.cart_empty') }} <a class="underline" href="/">{{ __('store.continue') }}</a></p>
+    <p class="text-gray-500">{{ __('store.cart_empty') }} <a class="underline" href="{{ $store->storePath('/') }}">{{ __('store.continue') }}</a></p>
 @else
-    <form method="POST" action="/cart/update" class="sf-card divide-y">@csrf
+    <form method="POST" action="{{ $store->storePath('/cart/update') }}" class="sf-card divide-y">@csrf
         @foreach ($lines as $l)
             <div class="p-4 flex items-center gap-3">
                 <div class="w-16 h-16 bg-gray-100 rounded overflow-hidden shrink-0">@if ($l['product']->coverUrl())<img src="{{ $l['product']->coverUrl() }}" class="w-full h-full object-cover" alt="">@endif</div>
@@ -16,6 +16,6 @@
         @endforeach
         <div class="p-4 flex items-center justify-between"><button class="text-sm underline">{{ __('store.update_cart') }}</button><p class="font-semibold">{{ __('store.subtotal') }}: {{ \App\Support\Fmt::money($subtotal) }}</p></div>
     </form>
-    <a href="/checkout" class="sf-btn mt-5 w-full md:w-auto">{{ __('store.checkout') }}</a>
+    <a href="{{ $store->storePath('/checkout') }}" class="sf-btn mt-5 w-full md:w-auto">{{ __('store.checkout') }}</a>
 @endif
 @endsection

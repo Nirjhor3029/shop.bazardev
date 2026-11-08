@@ -36,6 +36,29 @@ class PlanTest extends TestCase
         $this->assertFalse($u->store->activePlan()->allow_subdomain);
     }
 
+    public function test_free_plan_stores_internal_links_actually_point_inside_the_store_path(): void
+    {
+        // Regression: every internal href/action used to be root-relative ("/p/x", "/cart"),
+        // which is correct for a subdomain store but 404s for a path-based (Free plan) one,
+        // since those live under /{slug}/... not the domain root. Follow the real rendered
+        // links rather than constructing URLs by hand, so this would have caught that bug.
+        $u = $this->seller();
+        $home = $this->get($this->url($u, '/'))->assertOk();
+
+        preg_match('/href="([^"]*\/p\/sample-product-1)"/', $home->getContent(), $m);
+        $this->assertNotEmpty($m, 'product card link not found on the home page');
+        $this->get($m[1])->assertOk();
+
+        preg_match('/href="([^"]*\/cart)"/', $home->getContent(), $m);
+        $this->get($m[1])->assertOk();
+
+        $product = $this->get($this->url($u, '/p/sample-product-1'))->assertOk();
+        preg_match('/action="([^"]*\/cart\/add)"/', $product->getContent(), $m);
+        $this->assertNotEmpty($m, 'add-to-cart form action not found on the product page');
+        $this->post($m[1], ['product_id' => Product::withoutGlobalScopes()->where('slug', 'sample-product-1')->first()->id])
+            ->assertRedirect($this->url($u, '/cart'));
+    }
+
     public function test_free_plan_store_is_reachable_by_path_but_not_subdomain(): void
     {
         $u = $this->seller();

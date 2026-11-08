@@ -100,4 +100,16 @@ class Store extends Model
             ? 'https://'.$this->slug.'.'.config('shop.base_domain')
             : 'https://'.config('shop.base_domain').'/'.$this->slug;
     }
+
+    /**
+     * Internal storefront links/redirects must go through this - a path-based (non-subdomain)
+     * store lives under /{slug}/..., so a plain root-relative "/cart" would 404 for it.
+     * $path is a clean path ("/", "/cart", "/p/x"); append any query string after calling this.
+     */
+    public function storePath(string $path = '/'): string
+    {
+        $base = $this->activePlan()->allow_subdomain ? '' : '/'.$this->slug;
+
+        return $path === '/' ? ($base ?: '/') : $base.$path;
+    }
 }

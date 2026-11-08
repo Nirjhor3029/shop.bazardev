@@ -3,7 +3,7 @@
 @section('content')
 <h1 class="text-2xl font-bold mb-4">{{ __('store.checkout') }}</h1>
 <div class="grid md:grid-cols-2 gap-6" x-data="{ pm: '{{ old('payment_method', $methods->first()?->type) }}' }">
-<form method="POST" action="/checkout" class="sf-card p-5 space-y-4 order-2 md:order-1">@csrf
+<form method="POST" action="{{ $store->storePath('/checkout') }}" class="sf-card p-5 space-y-4 order-2 md:order-1">@csrf
     @error('cart')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
     @foreach ([['name','name','text','name'],['phone','mobile','tel','tel'],['email','email_opt','email','email']] as [$f,$l,$t,$ac])
         <div><label class="block text-sm font-medium" for="f-{{ $f }}">{{ __('store.'.$l) }}</label><input id="f-{{ $f }}" type="{{ $t }}" name="{{ $f }}" value="{{ old($f) }}" autocomplete="{{ $ac }}" @if ($f !== 'email') required @endif class="mt-1 border-gray-300 rounded-lg w-full">@error($f)<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>

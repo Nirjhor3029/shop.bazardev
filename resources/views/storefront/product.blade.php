@@ -39,7 +39,7 @@
 @endsection
 @section('hide_fab', '1')
 @section('content')
-<nav class="text-sm text-gray-500 mb-3"><a href="/" class="underline">{{ $store->name }}</a>@if ($product->category) / <a href="/?c={{ $product->category->slug }}" class="underline">{{ $product->category->name }}</a>@endif</nav>
+<nav class="text-sm text-gray-500 mb-3"><a href="{{ $store->storePath('/') }}" class="underline">{{ $store->name }}</a>@if ($product->category) / <a href="{{ $store->storePath('/') }}?c={{ $product->category->slug }}" class="underline">{{ $product->category->name }}</a>@endif</nav>
 <div class="grid md:grid-cols-2 gap-6 md:gap-10">
     {{-- gallery: swipe on phones --}}
     <div x-data="{ i: 0, go(n) { this.$refs.g.scrollTo({ left: n * this.$refs.g.clientWidth, behavior: 'smooth' }) } }">
@@ -64,7 +64,7 @@
             @if ($product->stock < 1){{ __('store.out') }}@elseif ($product->stock <= 3){{ __('store.only_left', ['n' => \App\Support\Fmt::digits($product->stock)]) }}@else{{ __('store.in_stock') }}@endif</p>
 
         @if ($product->stock > 0)
-            <form id="addform" method="POST" action="/cart/add" class="mt-5 flex items-center gap-3" x-data="{ qty: 1, max: {{ min(99, $product->stock) }} }">@csrf
+            <form id="addform" method="POST" action="{{ $store->storePath('/cart/add') }}" class="mt-5 flex items-center gap-3" x-data="{ qty: 1, max: {{ min(99, $product->stock) }} }">@csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 <div class="flex items-center border border-gray-300 rounded-lg shrink-0">
                     <button type="button" class="w-11 h-11 flex items-center justify-center text-lg leading-none" @click="qty = Math.max(1, qty - 1)" aria-label="-1">−</button>

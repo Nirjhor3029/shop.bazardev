@@ -50,7 +50,7 @@ class OrderFlowTest extends TestCase
         $p = $this->product($a, 1); // price 500, stock 10
         $res = $this->withCart($a, [$p->id => 3])->post($this->url($a, '/checkout'), $this->form());
         $order = Order::withoutGlobalScopes()->firstOrFail();
-        $res->assertRedirect('/order/'.$order->token);
+        $res->assertRedirect($a->store->fresh()->storePath('/order/'.$order->token));
         $this->assertEquals(1500, $order->subtotal);
         $this->assertEquals(60, $order->delivery_charge);
         $this->assertEquals(1560, $order->total);
