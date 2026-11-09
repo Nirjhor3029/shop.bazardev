@@ -14,7 +14,11 @@ use App\Http\Controllers\Seller\LandingPageController as SellerLandingPageContro
 use App\Http\Controllers\Seller\OrderController;
 use App\Http\Controllers\Seller\SettingsController;
 use App\Http\Controllers\Seller\ProductController;
+use App\Http\Controllers\Seller\QuestionController as SellerQuestionController;
+use App\Http\Controllers\Seller\ReviewController as SellerReviewController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\ProductQuestionController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SslcommerzController;
 use App\Http\Controllers\StorefrontController;
 use App\Models\Store;
@@ -32,10 +36,13 @@ $storefrontRoutes = function () {
     Route::get('/cards', [StorefrontController::class, 'cardsByIds'])->middleware('throttle:30,1');
     Route::get('/cart', [CartController::class, 'show']);
     Route::post('/cart/add', [CartController::class, 'add'])->middleware('throttle:30,1');
+    Route::post('/cart/add-bundle', [CartController::class, 'addBundle'])->middleware('throttle:30,1');
     Route::post('/cart/update', [CartController::class, 'update'])->middleware('throttle:60,1');
     Route::get('/checkout', [CheckoutController::class, 'show']);
     Route::post('/checkout', [CheckoutController::class, 'place'])->middleware('throttle:10,1');
     Route::get('/order/{token}', [CheckoutController::class, 'order'])->where('token', '[A-Za-z0-9]{40}');
+    Route::post('/order/{token}/review/{product}', [ReviewController::class, 'store'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:10,1');
+    Route::post('/p/{slug}/question', [ProductQuestionController::class, 'store'])->where('slug', '[a-z0-9-]+')->middleware('throttle:5,1');
     Route::match(['get', 'post'], '/sslcommerz/success/{token}', [SslcommerzController::class, 'success'])->where('token', '[A-Za-z0-9]{40}');
     Route::match(['get', 'post'], '/sslcommerz/fail/{token}', [SslcommerzController::class, 'fail'])->where('token', '[A-Za-z0-9]{40}');
     Route::match(['get', 'post'], '/sslcommerz/cancel/{token}', [SslcommerzController::class, 'cancel'])->where('token', '[A-Za-z0-9]{40}');
@@ -67,6 +74,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('seller.orders.show');
         Route::post('orders/{order}/status', [OrderController::class, 'status'])->name('seller.orders.status');
         Route::post('orders/{order}/payment', [OrderController::class, 'payment'])->name('seller.orders.payment');
+        Route::get('reviews', [SellerReviewController::class, 'index'])->name('seller.reviews.index');
+        Route::put('reviews/{review}', [SellerReviewController::class, 'update'])->name('seller.reviews.update');
+        Route::get('questions', [SellerQuestionController::class, 'index'])->name('seller.questions.index');
+        Route::put('questions/{question}', [SellerQuestionController::class, 'update'])->name('seller.questions.update');
         Route::get('appearance', [AppearanceController::class, 'edit'])->name('seller.appearance.edit');
         Route::post('appearance', [AppearanceController::class, 'update'])->name('seller.appearance.update');
         Route::resource('landing', SellerLandingPageController::class)->except('show')->names('seller.landing');

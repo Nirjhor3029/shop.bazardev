@@ -56,20 +56,47 @@
 
                 @if ($product->variants->count())
                     <p class="text-sm font-medium text-gray-700 mt-3">{{ $product->variants->count() }} combination(s) - blank price/sale price means it uses the product's own price above.</p>
+                    @if ($product->images->isNotEmpty())
+                        <p class="text-xs text-gray-500">"Image" lets a combo (e.g. a Color) show its own photo on the storefront instead of the main gallery.</p>
+                    @endif
                     <div class="space-y-2">
                         @foreach ($product->variants as $v)
                             <div class="flex items-center gap-2 border rounded-md p-2 text-sm">
+                                @if ($v->image)<img src="{{ $v->image->url() }}" class="w-8 h-8 object-cover rounded shrink-0" alt="">@endif
                                 <span class="w-32 shrink-0 truncate" title="{{ $v->label() }}">{{ $v->label() }}</span>
                                 <input type="number" step="0.01" min="0" name="variants[{{ $v->id }}][price]" value="{{ old("variants.{$v->id}.price", $v->price) }}" placeholder="Price" class="border-gray-300 rounded-md w-20">
                                 <input type="number" step="0.01" min="0" name="variants[{{ $v->id }}][sale_price]" value="{{ old("variants.{$v->id}.sale_price", $v->sale_price) }}" placeholder="Sale" class="border-gray-300 rounded-md w-20">
                                 <input type="number" min="0" name="variants[{{ $v->id }}][stock]" value="{{ old("variants.{$v->id}.stock", $v->stock) }}" placeholder="Stock" class="border-gray-300 rounded-md w-16">
                                 <input name="variants[{{ $v->id }}][sku]" value="{{ old("variants.{$v->id}.sku", $v->sku) }}" placeholder="SKU" class="border-gray-300 rounded-md w-20">
+                                @if ($product->images->isNotEmpty())
+                                    <select name="variants[{{ $v->id }}][image_id]" class="border-gray-300 rounded-md w-20 text-xs">
+                                        <option value="">Auto</option>
+                                        @foreach ($product->images as $img)
+                                            <option value="{{ $img->id }}" @selected((int) old("variants.{$v->id}.image_id", $v->image_id) === $img->id)>Img {{ $loop->iteration }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
                                 <label class="flex items-center gap-1 text-xs text-red-600 shrink-0"><input type="checkbox" name="variants[{{ $v->id }}][delete]" value="1" class="rounded"> remove</label>
                             </div>
                         @endforeach
                     </div>
                 @endif
             </div>
+
+            @if ($bundleCandidates->isNotEmpty())
+                <div class="border-t pt-4 space-y-2">
+                    <h3 class="font-semibold">Frequently bought together</h3>
+                    <p class="text-xs text-gray-500">Pick up to 4 other products to show as companions on this product's page.</p>
+                    <div class="flex flex-wrap gap-3">
+                        @foreach ($bundleCandidates as $c)
+                            <label class="flex items-center gap-2 text-sm border rounded-md px-2 py-1">
+                                <input type="checkbox" name="bundle_ids[]" value="{{ $c->id }}" class="rounded" @checked($product->companions->contains('id', $c->id))>
+                                {{ $c->name }}
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
             @endif
 
             <div class="flex items-center gap-3"><x-primary-button>{{ $editing ? 'Save' : 'Add product' }}</x-primary-button>

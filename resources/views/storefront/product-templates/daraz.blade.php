@@ -29,6 +29,8 @@
                     </div>
                 @endforelse
                 @unless ($available)<span class="absolute inset-0 bg-white/70 flex items-center justify-center font-semibold text-gray-700 z-10">{{ __('store.out') }}</span>@endunless
+                <template x-if="variant && variant.image"><img :src="variant.image" alt="{{ $product->name }}" class="absolute inset-0 w-full h-full object-cover sf-zoomable" @click="$store.zoom.open = true; $store.zoom.src = variant.image; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}"></template>
+                <button type="button" class="sf-wish-btn" data-wish-id="{{ $product->id }}" aria-label="{{ __('store.wishlist_add') }}" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
             </div>
             @if ($product->images->count() > 1)
                 <div class="mt-3 flex justify-center gap-2">@foreach ($product->images as $k => $img)<button type="button" @click="go({{ $k }})" class="w-12 h-12 rounded border-2 overflow-hidden" :class="i === {{ $k }} ? 'border-[var(--c)]' : 'border-transparent opacity-70'" aria-label="{{ $k + 1 }}"><img src="{{ $img->url() }}" alt="" class="w-full h-full object-cover"></button>@endforeach</div>
@@ -38,6 +40,9 @@
         <h1 class="mt-5 text-xl font-bold leading-snug">{{ $product->name }}</h1>
         @if ($product->description)<div class="mt-4"><h2 class="font-semibold mb-1">{{ __('store.description') }}</h2><p class="whitespace-pre-line text-gray-700 text-sm">{{ $product->description }}</p></div>@endif
         @include('storefront.product-templates._specs')
+        @include('storefront.product-templates._reviews')
+        @include('storefront.product-templates._qna')
+        @include('storefront.product-templates._bundle')
     </div>
 
     {{-- right: sticky buy-box, Daraz's signature layout --}}

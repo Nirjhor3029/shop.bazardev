@@ -22,6 +22,11 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function image(): BelongsTo
+    {
+        return $this->belongsTo(ProductImage::class);
+    }
+
     /** "Color: Red, Size: M" - a human label, snapshotted onto order items since variants can change later. */
     public function label(): string
     {

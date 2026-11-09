@@ -1,6 +1,6 @@
 # Product Detail Page — Completeness Plan
 
-**Status:** Phase 1 built and shipped, 2026-11-08 (116/116 tests pass). Phase 2 (reviews/Q&A/bundles) still not started.
+**Status:** Everything in this plan is now shipped (2026-11-08 → 2026-11-09), including both Phase 2 items and the follow-up batch: variant images, main-page wishlist, Reviews & Ratings, Q&A, and frequently-bought-together bundles. 134/134 tests pass.
 
 ## ১. প্রসঙ্গ
 
@@ -45,12 +45,37 @@ Image gallery, title, price+discount%, stock status, variant picker, qty selecto
 8. Tests: specs/size_guide validation, template rendering loop (existing `test_each_product_template_renders_with_and_without_variants` pattern এ নতুন field যুক্ত হবে), delivery_estimate display
 9. Pint + full suite + docs update + commit
 
-## ৫. Build করার সময় একটা ছোট scope সিদ্ধান্ত
+## ৫. Follow-up ব্যাচ (2026-11-09) — variant images + main-page wishlist
 
-Wishlist heart icon সব জায়গায় product card-এ (home, related, recently-viewed, wishlist page) আছে, কিন্তু product detail page-এর মূল product-এর জন্য আলাদা heart button যুক্ত করা হয়নি (৮টা template-এ আরও একটা edit করা লাগতো, আর card-গুলো দিয়েই wishlist reachable - related products সবসময় product page-এর নিচেই থাকে)। চাইলে পরে যুক্ত করা যাবে।
+- `product_variants.image_id` (nullable FK → `product_images`) — seller variant row-এ একটা `<select>` দিয়ে কোন uploaded image সেই combo (সাধারণত Color)-এর জন্য দেখাবে বেছে দিতে পারে। স্টোরফ্রন্টে variant select করলে gallery-র উপর সেই image overlay হয়ে বসে (৮ template-এই, zoom/wishlist overlay-এর মতোই sibling + absolute-position প্যাটার্নে, কোনো carousel/scroll logic touch না করে)। Cross-product image_id সার্ভার-সাইডে ignore হয় (`$product->images()->pluck('id')` দিয়ে validate)।
+- মূল product detail page-এর primary product-এও এখন wishlist heart button আছে (card-গুলোর মতোই `.sf-wish-btn` reuse করে, existing delegated click listener আর localStorage sync দিয়েই কাজ করে, নতুন JS লাগেনি)।
 
-## ৬. স্কোপে নেই (deliberately, এই plan-এও)
+## ৬. Reviews & Ratings (2026-11-09) — শিপড
 
-- Variant-ভিত্তিক আলাদা ছবি (আগের plan-এও ছিল না, এখনো না)
+Customer login নেই, তাই "verified purchase" গেট করা হয়েছে অর্ডারের secret token দিয়ে, নতুন কোনো auth system ছাড়াই:
+
+- `product_reviews` টেবিল (store_id, product_id, order_id, customer_name snapshot, rating 1-5, comment, status pending/approved/rejected), `(order_id, product_id)` unique — এক অর্ডারে এক product-এর জন্য একটাই রিভিউ।
+- Submission: অর্ডার `delivered` হওয়ার পর, customer নিজের order page (`/order/{token}`)-এই প্রতিটা item-এর নিচে rating+comment দিয়ে submit করতে পারে — কোনো আলাদা লগইন বা নতুন লিংক লাগে না। Route `product_id`-টা ওই order-এর item-এ আছে কিনা check করে (403 না থাকলে), আর duplicate submit হলে DB-level unique constraint + race-safe catch দিয়ে handle হয়।
+- Moderation: Seller dashboard-এ নতুন "Reviews" ট্যাব (pending count badge সহ, ঠিক Orders-এর "new" badge-এর মতো) — approve/reject করলে `Product::recomputeRating()` কল হয়ে `rating_avg`/`reviews_count` (cached columns) আপডেট হয়, storefront-এ প্রতি page-load-এ aggregate query লাগে না।
+- Storefront: approved review থাকলেই rating summary + latest ১০টা review `_reviews` partial-এ (৮ template-এই `_specs`-এর ঠিক পরে)।
+- Rate-limited (`throttle:10,1`) review-submission route, cross-store/cross-product leak ঠেকাতে multi-layer check (route-model-binding scope + explicit item-membership check)।
+
+## ৭. Q&A section (2026-11-09) — শিপড
+
+Reviews-এর মতো order-token গেট লাগেনি — কারণ Q&A-র পুরো উদ্দেশ্যই কেনার আগে প্রশ্ন করতে পারা, তাই product page-এই সরাসরি "Ask a question" ফর্ম (নাম + প্রশ্ন, কোনো login/order লাগে না, `throttle:5,1`)।
+
+- `product_questions` টেবিল (store_id, product_id, customer_name, question, answer nullable, is_hidden)। `answer` না থাকা পর্যন্ত storefront-এ দেখায় না — approve মানেই উত্তর দেওয়া। Spam হলে seller উত্তর না দিয়ে সরাসরি "Hide" করতে পারে।
+- Seller dashboard-এ নতুন "Questions" ট্যাব (pending badge সহ), pending list-এ ইনলাইনে উত্তর লেখার ফর্ম।
+- Storefront `_qna` partial (৮ template-এই `_reviews`-এর পরে) — answered question list + ask-form, একসাথে।
+
+## ৮. Frequently bought together (2026-11-09) — শিপড
+
+- `product_bundles` pure pivot টেবিল (product_id, companion_id, sort_order) — কোনো নতুন Eloquent model/store_id লাগেনি, দুই পাশই আগে থেকে store-scoped Product id।
+- Seller product-edit পেজে checkbox দিয়ে অন্য product থেকে max ৪টা "companion" বেছে দেওয়া যায় (cross-store id হলে silently ignore হয়, variant-এর image_id check-এর মতোই)।
+- Storefront-এ `_bundle` partial — প্রাইমারি product + companion-গুলো checkbox সহ (সব default checked), "Add selected to cart" একটা নতুন bulk endpoint (`/cart/add-bundle`, max ৫টা id, rate-limited) দিয়ে একসাথে cart-এ যুক্ত হয়।
+- **V1 সীমাবদ্ধতা (ইচ্ছাকৃত):** bundle strip-এ কোনো variant picker নেই, তাই primary product বা কোনো companion-এর variant থাকলে সেটা bundle থেকে বাদ পড়ে (primary-তে variant থাকলে পুরো bundle section-ই hide হয়ে যায়) — ভুল variant-এ (বা variant ছাড়া) ভুল দামে কার্টে ঢুকে যাওয়া ঠেকানোর জন্য। চাইলে পরে variant-aware bundle বানানো যাবে, কিন্তু সেটা আলাদা বড় কাজ।
+
+## ৯. স্কোপে নেই (deliberately, এই plan-এও)
+
 - Fabricated urgency/social-proof ("X জন দেখছে") — সবসময়ই বাদ
 - Multi-currency / bulk-MOQ pricing tier — B2C context-এ কম relevant

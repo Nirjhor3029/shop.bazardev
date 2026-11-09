@@ -38,6 +38,22 @@ class CartController extends Controller
         return redirect(app('currentStore')->storePath('/cart'))->with('status', __('store.added'));
     }
 
+    /** "Frequently bought together" - add several products at once, no variant selection (V1). */
+    public function addBundle(Request $request)
+    {
+        $data = $request->validate(['product_ids' => ['required', 'array', 'max:5'], 'product_ids.*' => ['integer']]);
+        $products = Product::with('variants')->where('is_active', true)->whereIn('id', $data['product_ids'])->get();
+        $cart = $this->cart();
+        foreach ($products as $p) {
+            // No variant picker in the bundle strip (V1), so a product that needs one can't be bulk-added safely.
+            if ($p->variants->isEmpty() && $p->stock > 0) {
+                $cart->add($p->id, 1);
+            }
+        }
+
+        return redirect(app('currentStore')->storePath('/cart'))->with('status', __('store.added'));
+    }
+
     public function update(Request $request)
     {
         $data = $request->validate(['qty' => ['required', 'array'], 'qty.*' => ['integer', 'min:0', 'max:99']]);

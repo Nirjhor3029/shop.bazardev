@@ -25,7 +25,12 @@ class StorefrontController extends Controller
     public function product(string $slug)
     {
         $store = app('currentStore');
-        $product = Product::with('images')->where('is_active', true)->where('slug', $slug)->firstOrFail();
+        $product = Product::with([
+            'images', 'variants.image',
+            'reviews' => fn ($q) => $q->where('status', 'approved')->latest()->limit(10),
+            'questions' => fn ($q) => $q->whereNotNull('answer')->where('is_hidden', false)->latest()->limit(10),
+            'companions' => fn ($q) => $q->where('products.is_active', true)->with('images', 'variants'),
+        ])->where('is_active', true)->where('slug', $slug)->firstOrFail();
         $related = Product::with('images')->where('is_active', true)->where('id', '!=', $product->id)
             ->orderByRaw('CASE WHEN category_id = ? THEN 0 ELSE 1 END', [$product->category_id])->latest()->limit(4)->get();
 

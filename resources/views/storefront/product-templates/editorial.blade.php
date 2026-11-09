@@ -23,6 +23,8 @@
                 <div class="aspect-[4/5] bg-gray-100 flex items-center justify-center text-gray-400 text-xs">{{ __('store.no_image') }}</div>
             @endforelse
             @unless ($available)<span class="absolute inset-0 bg-white/70 flex items-center justify-center font-medium text-gray-700 tracking-wide uppercase text-sm z-10">{{ __('store.out') }}</span>@endunless
+            <template x-if="variant && variant.image"><img :src="variant.image" alt="{{ $product->name }}" class="absolute inset-0 w-full h-full object-cover sf-zoomable" @click="$store.zoom.open = true; $store.zoom.src = variant.image; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}"></template>
+            <button type="button" class="sf-wish-btn" data-wish-id="{{ $product->id }}" aria-label="{{ __('store.wishlist_add') }}" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
         </div>
         @if ($product->images->count() > 1)
             <div class="mt-3 flex gap-2">@foreach ($product->images as $k => $img)<button type="button" @click="go({{ $k }})" class="w-12 h-16 overflow-hidden" :class="i === {{ $k }} ? 'ring-1 ring-gray-900' : 'opacity-60'" aria-label="{{ $k + 1 }}"><img src="{{ $img->url() }}" alt="" class="w-full h-full object-cover"></button>@endforeach</div>
@@ -81,6 +83,9 @@
 
         @if ($product->description)<div class="mt-6 pt-6 border-t"><h2 class="text-xs uppercase tracking-wide text-gray-500 mb-2">{{ __('store.description') }}</h2><p class="whitespace-pre-line text-gray-700 text-sm leading-relaxed">{{ $product->description }}</p></div>@endif
         @include('storefront.product-templates._specs')
+        @include('storefront.product-templates._reviews')
+        @include('storefront.product-templates._qna')
+        @include('storefront.product-templates._bundle')
 
         <div class="mt-6 flex items-center flex-wrap gap-2 text-sm" x-data="{ ok: false }" aria-live="polite"><span class="font-medium mr-1">{{ __('store.share') }}:</span>
             <a class="underline" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ rawurlencode($url) }}">Facebook</a>

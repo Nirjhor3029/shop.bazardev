@@ -10,6 +10,13 @@
     $deliveryEstimate = $s['delivery_estimate'] ?? null;
     $specs = collect($product->specs ?? [])->filter(fn ($row) => filled($row['key'] ?? null) && filled($row['value'] ?? null))->values();
     $sizeGuide = $product->size_guide;
+    $approvedReviews = $product->reviews;
+    $answeredQuestions = $product->questions;
+    // bundle "add all" has no variant picker (V1), so only offer it when the primary and its companions have no variants to choose from
+    $bundleCompanions = $product->variants->isEmpty() ? $product->companions->filter(fn ($c) => $c->variants->isEmpty()) : collect();
+    $bundleItems = $bundleCompanions->isEmpty() ? collect() : collect([$product])->concat($bundleCompanions)->map(fn ($p) => [
+        'id' => $p->id, 'name' => $p->name, 'image' => $p->images->first()?->url(), 'priceText' => \App\Support\Fmt::money($p->currentPrice()),
+    ]);
     $wa = \App\Support\Fmt::whatsapp($look['whatsapp'] ?? null);
     $waText = __('store.wa_msg', ['name' => $product->name, 'url' => $url]);
     $waTextOos = __('store.wa_msg_oos', ['name' => $product->name, 'url' => $url]);
@@ -29,7 +36,7 @@
         $vPct = ($eff < $base && $base > 0) ? (int) round((1 - $eff / $base) * 100) : 0;
 
         return [
-            'id' => $v->id, 'options' => $v->options, 'stock' => $v->stock, 'sku' => $v->sku,
+            'id' => $v->id, 'options' => $v->options, 'stock' => $v->stock, 'sku' => $v->sku, 'image' => $v->image?->url(),
             'priceText' => \App\Support\Fmt::money($eff), 'oldPriceText' => $vPct > 0 ? \App\Support\Fmt::money($base) : null, 'pct' => $vPct,
         ];
     })->values();

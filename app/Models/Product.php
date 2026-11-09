@@ -13,7 +13,7 @@ class Product extends Model
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:2', 'sale_price' => 'decimal:2', 'is_active' => 'boolean', 'is_sample' => 'boolean', 'is_featured' => 'boolean', 'specs' => 'array'];
+        return ['price' => 'decimal:2', 'sale_price' => 'decimal:2', 'rating_avg' => 'decimal:2', 'is_active' => 'boolean', 'is_sample' => 'boolean', 'is_featured' => 'boolean', 'specs' => 'array'];
     }
 
     public function images(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -29,6 +29,33 @@ class Product extends Model
     public function variants(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ProductVariant::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function reviews(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function questions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProductQuestion::class);
+    }
+
+    /** Seller-curated "frequently bought together" companions, in the order the seller set them. */
+    public function companions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'product_bundles', 'product_id', 'companion_id')
+            ->orderBy('product_bundles.sort_order');
+    }
+
+    /** Recomputes the cached rating_avg/reviews_count from approved reviews - called after any review status change. */
+    public function recomputeRating(): void
+    {
+        $approved = $this->reviews()->where('status', 'approved');
+        $this->forceFill([
+            'reviews_count' => $approved->count(),
+            'rating_avg' => $approved->avg('rating'),
+        ])->save();
     }
 
     public function coverUrl(): ?string

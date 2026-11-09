@@ -40,9 +40,12 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load('images', 'variants');
+        $product->load('images', 'variants', 'companions');
 
-        return view('seller.products.form', ['product' => $product, 'categories' => Category::orderBy('name')->get(), 'optionGroups' => VariantGenerator::groupsFor($product)]);
+        return view('seller.products.form', [
+            'product' => $product, 'categories' => Category::orderBy('name')->get(), 'optionGroups' => VariantGenerator::groupsFor($product),
+            'bundleCandidates' => Product::where('id', '!=', $product->id)->orderBy('name')->get(),
+        ]);
     }
 
     public function update(Request $request, Product $product, ImageStore $images, VariantGenerator $variants)
@@ -63,6 +66,7 @@ class ProductController extends Controller
         }
         $this->addImages($request, $product, $images);
         $this->syncVariantRows($request, $product);
+        $this->syncBundleCompanions($request, $product);
         $product->update(['is_sample' => false]);
 
         return back()->with('status', 'Saved.');
@@ -125,8 +129,10 @@ class ProductController extends Controller
             'variants.*.sale_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.stock' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'variants.*.sku' => ['nullable', 'string', 'max:60'],
+            'variants.*.image_id' => ['nullable', 'integer'],
             'variants.*.delete' => ['nullable', 'boolean'],
         ])['variants'] ?? [];
+        $imageIds = $product->images()->pluck('id');
         foreach ($rows as $id => $row) {
             $variant = $product->variants()->find($id);
             if (! $variant) {
@@ -137,13 +143,24 @@ class ProductController extends Controller
 
                 continue;
             }
+            $imageId = (int) ($row['image_id'] ?? 0);
             $variant->update([
                 'price' => filled($row['price'] ?? null) ? $row['price'] : null,
                 'sale_price' => filled($row['sale_price'] ?? null) ? $row['sale_price'] : null,
                 'stock' => (int) ($row['stock'] ?? 0),
                 'sku' => $row['sku'] ?? null,
+                'image_id' => $imageIds->contains($imageId) ? $imageId : null,
             ]);
         }
+    }
+
+    /** Caps at 4 companions, and only allows picking this store's own other products (same defence as /cards). */
+    private function syncBundleCompanions(Request $request, Product $product): void
+    {
+        $ids = $request->validate(['bundle_ids' => ['nullable', 'array'], 'bundle_ids.*' => ['integer']])['bundle_ids'] ?? [];
+        $requested = collect($ids)->unique()->take(4);
+        $validIds = $requested->intersect(Product::where('id', '!=', $product->id)->pluck('id'));
+        $product->companions()->sync($validIds->values()->mapWithKeys(fn ($id, $i) => [$id => ['sort_order' => $i]])->all());
     }
 
     private function addImages(Request $request, Product $product, ImageStore $images): void

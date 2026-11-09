@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\StoreCreator;
@@ -104,6 +105,52 @@ class ProductPageExtrasTest extends TestCase
     {
         $u = $this->seller();
         $this->get($this->url($u, '/wishlist'))->assertOk()->assertSee('sf-wishlist-grid', false);
+    }
+
+    public function test_variant_image_can_be_assigned_and_overrides_the_main_gallery(): void
+    {
+        $u = $this->seller();
+        $this->upgradeToPro($u->store);
+        $p = $this->product($u);
+        $img1 = ProductImage::forceCreate(['store_id' => $p->store_id, 'product_id' => $p->id, 'path' => 'fake/one.jpg', 'sort_order' => 1]);
+        ProductImage::forceCreate(['store_id' => $p->store_id, 'product_id' => $p->id, 'path' => 'fake/two.jpg', 'sort_order' => 2]);
+
+        $this->actingAs($u)->put(route('seller.products.update', $p), [
+            'name' => $p->name, 'price' => $p->price, 'stock' => $p->stock,
+            'option1_name' => 'Color', 'option1_values' => 'Red', 'generate_variants' => '1',
+        ]);
+        $v = ProductVariant::withoutGlobalScopes()->where('product_id', $p->id)->firstOrFail();
+
+        $this->actingAs($u)->put(route('seller.products.update', $p), [
+            'name' => $p->name, 'price' => $p->price, 'stock' => $p->stock, 'is_active' => 1,
+            'variants' => [$v->id => ['stock' => 5, 'image_id' => $img1->id]],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame($img1->id, $v->refresh()->image_id);
+        $this->get($this->url($u, '/p/'.$p->slug))->assertOk()->assertSee($img1->url(), false);
+    }
+
+    public function test_variant_image_id_from_another_product_is_ignored(): void
+    {
+        $u = $this->seller('alpha');
+        $other = $this->seller('beta');
+        $this->upgradeToPro($u->store);
+        $p = $this->product($u);
+        $otherProduct = $this->product($other);
+        $foreignImage = ProductImage::forceCreate(['store_id' => $otherProduct->store_id, 'product_id' => $otherProduct->id, 'path' => 'fake/foreign.jpg', 'sort_order' => 1]);
+
+        $this->actingAs($u)->put(route('seller.products.update', $p), [
+            'name' => $p->name, 'price' => $p->price, 'stock' => $p->stock,
+            'option1_name' => 'Color', 'option1_values' => 'Red', 'generate_variants' => '1',
+        ]);
+        $v = ProductVariant::withoutGlobalScopes()->where('product_id', $p->id)->firstOrFail();
+
+        $this->actingAs($u)->put(route('seller.products.update', $p), [
+            'name' => $p->name, 'price' => $p->price, 'stock' => $p->stock,
+            'variants' => [$v->id => ['stock' => 5, 'image_id' => $foreignImage->id]],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull($v->refresh()->image_id);
     }
 
     public function test_cards_by_ids_endpoint_renders_requested_products_scoped_to_the_current_store(): void

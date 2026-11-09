@@ -27,4 +27,12 @@ return [
     'specs' => 'Specifications', 'size_guide' => 'Size guide', 'close' => 'Close', 'sku' => 'SKU',
     'recently_viewed' => 'Recently viewed', 'wishlist' => 'Wishlist', 'wishlist_add' => 'Add to wishlist',
     'wishlist_remove' => 'Remove from wishlist', 'wishlist_empty' => 'Your wishlist is empty.',
+    'reviews' => 'Reviews', 'no_reviews_yet' => 'No reviews yet.', 'rating_count' => ':count reviews',
+    'rate_this' => 'Rate this', 'review_comment_ph' => 'A short comment (optional)', 'submit_review' => 'Submit',
+    'review_sent' => 'Thanks! Your review has been submitted for approval.', 'review_thanks' => 'Thanks for your review',
+    'review_already_sent' => 'You already reviewed this product.', 'review_not_delivered' => 'You can review this once the order is marked delivered.',
+    'qna' => 'Questions & Answers', 'q' => 'Q', 'a' => 'A', 'no_questions_yet' => 'No questions yet - be the first to ask.',
+    'ask_question' => 'Ask a question', 'question_ph' => 'What would you like to know about this product?', 'submit_question' => 'Ask',
+    'question_sent' => 'Thanks! The seller will answer soon.',
+    'bundle_title' => 'Frequently bought together', 'add_bundle' => 'Add selected to cart',
 ];
