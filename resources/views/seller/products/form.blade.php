@@ -11,6 +11,12 @@
                 <input name="name" value="{{ old('name', $product->name) }}" required maxlength="150" class="mt-1 border-gray-300 rounded-md w-full">@error('name')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             <div><label class="block text-sm font-medium text-gray-700">Description</label>
                 <textarea name="description" rows="4" class="mt-1 border-gray-300 rounded-md w-full">{{ old('description', $product->description) }}</textarea></div>
+            <div><label class="block text-sm font-medium text-gray-700">Specifications (one "Key: Value" per line, max 15)</label>
+                @php $specsText = old('specs', collect($product->specs ?? [])->map(fn ($s) => $s['key'].': '.$s['value'])->implode("\n")); @endphp
+                <textarea name="specs" rows="4" placeholder="Material: Cotton&#10;Weight: 250g&#10;Brand: Acme" class="mt-1 border-gray-300 rounded-md w-full">{{ $specsText }}</textarea>
+                @error('specs')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
+            <div><label class="block text-sm font-medium text-gray-700">Size guide (optional, shown only if filled)</label>
+                <textarea name="size_guide" rows="3" placeholder="e.g. M fits chest 38-40 in, L fits 42-44 in" class="mt-1 border-gray-300 rounded-md w-full">{{ old('size_guide', $product->size_guide) }}</textarea></div>
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium text-gray-700">Price</label>
                     <input type="number" step="0.01" min="0" name="price" value="{{ old('price', $product->price) }}" required class="mt-1 border-gray-300 rounded-md w-full">@error('price')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>

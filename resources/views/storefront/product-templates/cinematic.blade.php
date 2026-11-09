@@ -19,7 +19,7 @@
     {{-- full-bleed hero: breaks out of the max-w container, Apple/Tesla-style quiet, product-first opening --}}
     <div class="relative left-1/2 -ml-[50vw] w-screen">
         @if ($hasImg)
-            <img src="{{ $product->images->first()->url() }}" alt="{{ $product->name }}" class="w-full max-h-[70vh] object-cover">
+            <img src="{{ $product->images->first()->url() }}" alt="{{ $product->name }}" class="w-full max-h-[70vh] object-cover sf-zoomable" @click="$store.zoom.open = true; $store.zoom.src = {{ \Illuminate\Support\Js::from($product->images->first()->url()) }}; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}">
         @else
             <div class="w-full h-[50vh] bg-gray-100 flex items-center justify-center text-gray-400">{{ __('store.no_image') }}</div>
         @endif
@@ -58,6 +58,7 @@
             <p class="mt-2 text-sm font-medium {{ $product->stock > 0 ? 'text-green-700' : 'text-red-600' }}">
                 @if ($product->stock < 1){{ __('store.out') }}@elseif ($product->stock <= 3){{ __('store.only_left', ['n' => \App\Support\Fmt::digits($product->stock)]) }}@else{{ __('store.in_stock') }}@endif</p>
         @endif
+        <template x-if="variant && variant.sku"><p class="text-xs text-gray-400">{{ __('store.sku') }}: <span x-text="variant.sku"></span></p></template>
 
         @if ($available)
             <form id="addform" method="POST" action="{{ $store->storePath('/cart/add') }}" class="mt-6 flex items-center justify-center gap-3">@csrf
@@ -76,12 +77,14 @@
         <div class="mt-8 text-sm text-gray-500 space-y-1 text-left sf-card p-4">
             <p><span class="font-medium text-gray-700">{{ __('store.delivery') }}:</span>
                 @if ($charge <= 0){{ __('store.free_delivery') }}
-                @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif</p>
+                @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif
+                @if ($deliveryEstimate) · {{ $deliveryEstimate }}@endif</p>
             @if ($methods->count())<p class="flex flex-wrap items-center gap-2"><span class="font-medium text-gray-700">{{ __('store.pay') }}:</span>
                 @foreach ($methods as $m)<span class="sf-chip !py-0.5 !text-xs">{{ __('store.'.$m) }}</span>@endforeach</p>@endif
         </div>
 
         @if ($product->description)<div class="mt-6 text-left"><h2 class="font-semibold mb-1">{{ __('store.description') }}</h2><p class="whitespace-pre-line text-gray-700 text-sm">{{ $product->description }}</p></div>@endif
+        <div class="text-left">@include('storefront.product-templates._specs')</div>
 
         <div class="mt-6 flex items-center justify-center flex-wrap gap-2 text-sm" x-data="{ ok: false }" aria-live="polite"><span class="font-semibold mr-1">{{ __('store.share') }}:</span>
             <a class="sf-chip" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ rawurlencode($url) }}">Facebook</a>

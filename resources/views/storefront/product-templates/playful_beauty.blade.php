@@ -19,7 +19,7 @@
     {{-- image floats on a soft brand-colour block, rounded everywhere - beauty brands keep it warm and friendly --}}
     <div class="rounded-[2rem] p-6 md:p-10" style="background: var(--c-soft)" x-data="{ i: 0, go(n) { this.$refs.g.scrollTo({ left: n * this.$refs.g.clientWidth, behavior: 'smooth' }) } }">
         <div x-ref="g" @scroll.debounce.50ms="i = Math.round($refs.g.scrollLeft / $refs.g.clientWidth)" class="flex overflow-x-auto scroll-snap-x relative rounded-2xl" style="scroll-snap-type:x mandatory; scrollbar-width:none;">
-            @forelse ($product->images as $img)<img src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover rounded-2xl shrink-0" style="scroll-snap-align:center" @if (! $loop->first) loading="lazy" @endif>@empty
+            @forelse ($product->images as $img)<img src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover rounded-2xl shrink-0 sf-zoomable" style="scroll-snap-align:center" @click="$store.zoom.open = true; $store.zoom.src = {{ \Illuminate\Support\Js::from($img->url()) }}; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}" @if (! $loop->first) loading="lazy" @endif>@empty
                 <div class="w-full aspect-square bg-white/60 rounded-2xl flex items-center justify-center text-gray-400 text-xs">{{ __('store.no_image') }}</div>
             @endforelse
         </div>
@@ -63,6 +63,7 @@
                 <p class="text-sm text-amber-600" x-show="! ready">{{ __('store.choose_options', ['names' => $optionChoices->keys()->implode(' / ')]) }}</p>
             </div>
         @endif
+        <template x-if="variant && variant.sku"><p class="text-xs text-gray-400 mt-1">{{ __('store.sku') }}: <span x-text="variant.sku"></span></p></template>
 
         @if ($available)
             <form id="addform" method="POST" action="{{ $store->storePath('/cart/add') }}" class="mt-6 flex items-center gap-3">@csrf
@@ -81,12 +82,14 @@
         <div class="mt-5 rounded-2xl p-4 text-sm space-y-3" style="background: var(--c-soft)">
             <p><span class="font-semibold">{{ __('store.delivery') }}:</span>
                 @if ($charge <= 0){{ __('store.free_delivery') }}
-                @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif</p>
+                @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif
+                @if ($deliveryEstimate) · {{ $deliveryEstimate }}@endif</p>
             @if ($methods->count())<p class="flex flex-wrap items-center gap-2"><span class="font-semibold">{{ __('store.pay') }}:</span>
                 @foreach ($methods as $m)<span class="sf-trust-chip">{{ __('store.'.$m) }}</span>@endforeach</p>@endif
         </div>
 
         @if ($product->description)<div class="mt-5"><h2 class="font-semibold mb-1">{{ __('store.description') }}</h2><p class="whitespace-pre-line text-gray-700">{{ $product->description }}</p></div>@endif
+        @include('storefront.product-templates._specs')
 
         <div class="mt-6 flex items-center flex-wrap gap-2 text-sm" x-data="{ ok: false }" aria-live="polite"><span class="font-semibold mr-1">{{ __('store.share') }}:</span>
             <a class="sf-chip" style="border-radius:999px" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ rawurlencode($url) }}">Facebook</a>

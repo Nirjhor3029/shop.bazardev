@@ -8,6 +8,8 @@
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium">Delivery charge</label><input type="number" step="1" min="0" name="delivery_charge" value="{{ old('delivery_charge', $store->settings['delivery_charge'] ?? 0) }}" required class="mt-1 border-gray-300 rounded-md w-full"></div>
                 <div><label class="block text-sm font-medium">Free delivery over (0 = never)</label><input type="number" step="1" min="0" name="free_delivery_over" value="{{ old('free_delivery_over', $store->settings['free_delivery_over'] ?? 0) }}" class="mt-1 border-gray-300 rounded-md w-full"></div>
+                <div class="col-span-2"><label class="block text-sm font-medium">Delivery time estimate (optional, shown on product page)</label><input name="delivery_estimate" maxlength="100" placeholder="e.g. ২-৪ দিনের মধ্যে ডেলিভারি" value="{{ old('delivery_estimate', $store->settings['delivery_estimate'] ?? '') }}" class="mt-1 border-gray-300 rounded-md w-full">
+                    @error('delivery_estimate')<p class="text-sm text-red-600">{{ $message }}</p>@enderror</div>
             </div>
             <div class="border-t pt-4"><h3 class="font-semibold">Payment methods</h3>
                 <label class="mt-3 flex items-center gap-2"><input type="checkbox" name="cod" value="1" class="rounded" @checked(old('cod', $methods['cod']->is_active ?? true))> Cash on delivery</label>

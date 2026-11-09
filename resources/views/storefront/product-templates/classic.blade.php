@@ -19,7 +19,7 @@
     {{-- gallery: swipe on phones --}}
     <div x-data="{ i: 0, go(n) { this.$refs.g.scrollTo({ left: n * this.$refs.g.clientWidth, behavior: 'smooth' }) } }">
         <div x-ref="g" @scroll.debounce.50ms="i = Math.round($refs.g.scrollLeft / $refs.g.clientWidth)" class="sf-gallery relative">
-            @forelse ($product->images as $img)<img src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover" @if (! $loop->first) loading="lazy" @endif>@empty
+            @forelse ($product->images as $img)<img src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover sf-zoomable" @click="$store.zoom.open = true; $store.zoom.src = {{ \Illuminate\Support\Js::from($img->url()) }}; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}" @if (! $loop->first) loading="lazy" @endif>@empty
                 <div class="aspect-square bg-gray-100 flex flex-col items-center justify-center text-gray-400 gap-1">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
                     <span class="text-xs">{{ __('store.no_image') }}</span>
@@ -58,6 +58,7 @@
                 <p class="text-sm text-amber-600" x-show="! ready">{{ __('store.choose_options', ['names' => $optionChoices->keys()->implode(' / ')]) }}</p>
             </div>
         @endif
+        <template x-if="variant && variant.sku"><p class="text-xs text-gray-400 mt-1">{{ __('store.sku') }}: <span x-text="variant.sku"></span></p></template>
 
         @if ($available)
             <form id="addform" method="POST" action="{{ $store->storePath('/cart/add') }}" class="mt-5 flex items-center gap-3">@csrf
@@ -77,12 +78,14 @@
         <div class="mt-5 sf-card p-4 text-sm space-y-3">
             <p><span class="font-semibold">{{ __('store.delivery') }}:</span>
                 @if ($charge <= 0){{ __('store.free_delivery') }}
-                @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif</p>
+                @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif
+                @if ($deliveryEstimate) · {{ $deliveryEstimate }}@endif</p>
             @if ($methods->count())<p class="flex flex-wrap items-center gap-2"><span class="font-semibold">{{ __('store.pay') }}:</span>
                 @foreach ($methods as $m)<span class="sf-chip !py-0.5 !text-xs">{{ __('store.'.$m) }}</span>@endforeach</p>@endif
         </div>
 
         @if ($product->description)<div class="mt-5"><h2 class="font-semibold mb-1">{{ __('store.description') }}</h2><p class="whitespace-pre-line text-gray-700">{{ $product->description }}</p></div>@endif
+        @include('storefront.product-templates._specs')
 
         <div class="mt-6 flex items-center flex-wrap gap-2 text-sm" x-data="{ ok: false }" aria-live="polite"><span class="font-semibold mr-1">{{ __('store.share') }}:</span>
             <a class="sf-chip" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ rawurlencode($url) }}">Facebook</a>

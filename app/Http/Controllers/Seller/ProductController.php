@@ -89,6 +89,8 @@ class ProductController extends Controller
             'category_id' => ['nullable', 'integer'],
             'images' => ['nullable', 'array', 'max:8'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'specs' => ['nullable', 'string', 'max:3000'],
+            'size_guide' => ['nullable', 'string', 'max:3000'],
         ]);
         // category must belong to this store (scope makes foreign ids invisible)
         if (! empty($data['category_id']) && ! Category::whereKey($data['category_id'])->exists()) {
@@ -96,9 +98,23 @@ class ProductController extends Controller
         }
         $data['is_active'] = $request->boolean('is_active');
         $data['is_featured'] = $request->boolean('is_featured');
+        $data['specs'] = $this->parseSpecs($data['specs'] ?? '');
+        $data['size_guide'] = filled($data['size_guide'] ?? null) ? trim($data['size_guide']) : null;
         unset($data['images']);
 
         return $data;
+    }
+
+    /** Parses "Key: Value" lines (one per line) into [{key, value}], capped at 15 rows. */
+    private function parseSpecs(string $raw): array
+    {
+        return collect(preg_split('/\r?\n/', $raw))
+            ->map(fn ($line) => explode(':', $line, 2))
+            ->filter(fn ($parts) => count($parts) === 2 && trim($parts[0]) !== '' && trim($parts[1]) !== '')
+            ->map(fn ($parts) => ['key' => trim($parts[0]), 'value' => trim($parts[1])])
+            ->take(15)
+            ->values()
+            ->all();
     }
 
     private function syncVariantRows(Request $request, Product $product): void

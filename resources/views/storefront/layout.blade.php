@@ -45,6 +45,12 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
 .sf-tag { display:inline-block; background:#fef2f2; color:#b91c1c; font-weight:700; font-size:.75rem; border-radius:6px; padding:.1rem .45rem; }
 .sf-tag-new { display:inline-block; background:#ecfdf5; color:#047857; font-weight:700; font-size:.75rem; border-radius:6px; padding:.1rem .45rem; }
 .sf-trust-chip { display:inline-flex; align-items:center; background: var(--c-soft); color: var(--c-dark); border-radius:999px; padding:.35rem .9rem; font-size:.78rem; font-weight:600; }
+.sf-wish-btn { position:absolute; top:.5rem; right:.5rem; z-index:10; background:rgba(255,255,255,.92); border-radius:999px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,.15); color:#ef4444; }
+.sf-wish-btn svg { fill:none; transition: fill .15s ease; }
+.sf-wish-btn.on svg { fill: currentColor; }
+.sf-zoomable { cursor: zoom-in; }
+.sf-zoom-overlay img { max-width:100%; max-height:90vh; object-fit:contain; }
+[x-cloak] { display:none !important; }
 /* product-page templates: Daraz-style discount ribbon, Alibaba-style tab buttons */
 .sf-ribbon { position:absolute; top:.6rem; left:.6rem; z-index:10; background:#ee4d2d; color:#fff; font-weight:800; font-size:.95rem; padding:.3rem .6rem; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,.15); }
 .sf-tab { padding:.6rem 1rem; font-weight:600; font-size:.9rem; color:#6b7280; border-bottom:2px solid transparent; }
@@ -143,9 +149,18 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
 @if (! empty($look['announcement']))<div class="sf-announce">{{ $look['announcement'] }}</div>@endif
 <header class="sf-head"><div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
     <a href="{{ $store->storePath('/') }}" class="flex items-center gap-3 text-lg font-bold min-w-0">@if ($logo)<img src="{{ $logo }}" alt="" class="h-9 w-auto max-w-[120px] object-contain">@endif<span class="truncate">{{ $store->name }}</span></a>
-    <a href="{{ $store->storePath('/cart') }}" class="sf-pill text-sm px-3 py-1.5 flex items-center gap-1.5 shrink-0" aria-label="{{ __('store.cart') }}">
+    <div class="flex items-center gap-2 shrink-0">
+    <a href="{{ $store->storePath('/wishlist') }}" class="sf-pill text-sm px-3 py-1.5 flex items-center gap-1.5" aria-label="{{ __('store.wishlist') }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <span id="sf-wish-count" class="font-bold">0</span></a>
+    <a href="{{ $store->storePath('/cart') }}" class="sf-pill text-sm px-3 py-1.5 flex items-center gap-1.5" aria-label="{{ __('store.cart') }}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-        <span>{{ __('store.cart') }}</span><span class="font-bold">{{ \App\Support\Fmt::digits($cartCount) }}</span></a></div></header>
+        <span>{{ __('store.cart') }}</span><span class="font-bold">{{ \App\Support\Fmt::digits($cartCount) }}</span></a>
+    </div></div></header>
+<div x-data="{}" x-show="$store.zoom.open" x-cloak @keydown.escape.window="$store.zoom.open = false" class="sf-zoom-overlay fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4" @click="$store.zoom.open = false">
+    <img :src="$store.zoom.src" :alt="$store.zoom.alt" @click.stop>
+    <button type="button" class="absolute top-4 right-4 text-white text-3xl leading-none" @click="$store.zoom.open = false" aria-label="{{ __('store.close') }}">&times;</button>
+</div>
 <main class="max-w-5xl mx-auto px-4 py-6">
     @if (session('status'))<div class="mb-4 bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
     @yield('content')
@@ -154,6 +169,81 @@ a.sf-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,
 @if ($wa && ! $__env->hasSection('hide_fab'))<a class="sf-fab" href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></a>@endif
 @yield('bar')
 <noscript><style>.sf-reveal{opacity:1!important;transform:none!important;}</style></noscript>
+<script>
+(function () {
+    // client-only wishlist + "recently viewed": localStorage only, no server list, so it's free at any scale.
+    var STORE_ID = {{ $store->id }};
+    var WISH_KEY = 'sf_wish_' + STORE_ID;
+    var RECENT_KEY = 'sf_recent_' + STORE_ID;
+    var CARDS_URL = {!! json_encode($store->storePath('/cards')) !!};
+
+    function readIds(key) {
+        try {
+            var raw = JSON.parse(localStorage.getItem(key) || '[]');
+            return Array.isArray(raw) ? raw.filter(function (n) { return Number.isInteger(n); }) : [];
+        } catch (e) { return []; }
+    }
+    function writeIds(key, ids) {
+        try { localStorage.setItem(key, JSON.stringify(ids)); } catch (e) {}
+    }
+    function fetchCards(ids, into) {
+        if (!ids.length || !into) return;
+        fetch(CARDS_URL + '?ids=' + ids.join(','))
+            .then(function (r) { return r.ok ? r.text() : ''; })
+            .then(function (html) { into.innerHTML = html; syncWishButtons(); })
+            .catch(function () {});
+    }
+    function syncWishButtons() {
+        var ids = readIds(WISH_KEY);
+        document.querySelectorAll('.sf-wish-btn').forEach(function (btn) {
+            var on = ids.indexOf(parseInt(btn.getAttribute('data-wish-id'), 10)) !== -1;
+            btn.classList.toggle('on', on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        var countEl = document.getElementById('sf-wish-count');
+        if (countEl) countEl.textContent = ids.length;
+    }
+
+    window.sfWishlist = {
+        toggle: function (id) {
+            var ids = readIds(WISH_KEY);
+            var i = ids.indexOf(id);
+            if (i === -1) { ids.push(id); } else { ids.splice(i, 1); }
+            writeIds(WISH_KEY, ids);
+            syncWishButtons();
+        },
+        render: function (gridId, emptyId) {
+            var ids = readIds(WISH_KEY).slice(0, 20);
+            var empty = emptyId ? document.getElementById(emptyId) : null;
+            if (!ids.length) { if (empty) empty.classList.remove('hidden'); return; }
+            if (empty) empty.classList.add('hidden');
+            fetchCards(ids, document.getElementById(gridId));
+        },
+    };
+    window.sfRecent = {
+        push: function (id) {
+            var ids = readIds(RECENT_KEY).filter(function (n) { return n !== id; });
+            ids.unshift(id);
+            writeIds(RECENT_KEY, ids.slice(0, 8));
+        },
+        render: function (sectionId, gridId, excludeId) {
+            var ids = readIds(RECENT_KEY).filter(function (n) { return n !== excludeId; }).slice(0, 4);
+            if (!ids.length) return;
+            var section = document.getElementById(sectionId);
+            if (section) section.classList.remove('hidden');
+            fetchCards(ids, document.getElementById(gridId));
+        },
+    };
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.sf-wish-btn');
+        if (!btn) return;
+        e.preventDefault();
+        var id = parseInt(btn.getAttribute('data-wish-id'), 10);
+        if (id) window.sfWishlist.toggle(id);
+    });
+    syncWishButtons();
+})();
+</script>
 <script>
 (function () {
     try {

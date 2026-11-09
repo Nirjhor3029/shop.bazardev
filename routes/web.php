@@ -28,6 +28,8 @@ $storefrontRoutes = function () {
     Route::get('/p/{slug}', [StorefrontController::class, 'product'])->where('slug', '[a-z0-9-]+');
     Route::get('/lp/{slug}', [LandingPageController::class, 'show'])->where('slug', '[a-z0-9-]+');
     Route::post('/lp/{slug}/order', [LandingPageController::class, 'order'])->where('slug', '[a-z0-9-]+')->middleware('throttle:10,1');
+    Route::get('/wishlist', [StorefrontController::class, 'wishlist']);
+    Route::get('/cards', [StorefrontController::class, 'cardsByIds'])->middleware('throttle:30,1');
     Route::get('/cart', [CartController::class, 'show']);
     Route::post('/cart/add', [CartController::class, 'add'])->middleware('throttle:30,1');
     Route::post('/cart/update', [CartController::class, 'update'])->middleware('throttle:60,1');

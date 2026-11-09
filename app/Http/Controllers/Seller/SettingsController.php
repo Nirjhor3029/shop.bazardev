@@ -26,6 +26,7 @@ class SettingsController extends Controller
             'name' => ['required', 'string', 'max:80'],
             'delivery_charge' => ['required', 'numeric', 'min:0', 'max:100000'],
             'free_delivery_over' => ['nullable', 'numeric', 'min:0', 'max:10000000'],
+            'delivery_estimate' => ['nullable', 'string', 'max:100'],
             'cod' => ['nullable', 'boolean'],
             'pay' => ['nullable', 'array'],
             'pay.*.number' => ['nullable', 'regex:/^(?:\+?88)?01[3-9]\d{8}$/'],
@@ -41,6 +42,7 @@ class SettingsController extends Controller
             'settings' => array_merge($store->settings ?? [], [
                 'delivery_charge' => (float) $data['delivery_charge'],
                 'free_delivery_over' => (float) ($data['free_delivery_over'] ?? 0),
+                'delivery_estimate' => filled($data['delivery_estimate'] ?? null) ? trim($data['delivery_estimate']) : null,
             ]),
         ]);
 

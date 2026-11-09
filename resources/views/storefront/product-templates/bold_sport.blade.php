@@ -19,7 +19,7 @@
     {{-- big, full-width, high-energy image up top - sportswear sites lead with action, not a boxed gallery --}}
     <div class="relative rounded-2xl overflow-hidden" style="background: var(--c-ink)">
         @if ($product->images->isNotEmpty())
-            <img src="{{ $product->images->first()->url() }}" alt="{{ $product->name }}" class="w-full aspect-[16/10] object-cover">
+            <img src="{{ $product->images->first()->url() }}" alt="{{ $product->name }}" class="w-full aspect-[16/10] object-cover sf-zoomable" @click="$store.zoom.open = true; $store.zoom.src = {{ \Illuminate\Support\Js::from($product->images->first()->url()) }}; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}">
         @else
             <div class="w-full aspect-[16/10] flex items-center justify-center text-white/50">{{ __('store.no_image') }}</div>
         @endif
@@ -55,6 +55,7 @@
                 <p class="text-sm text-amber-700 font-medium" x-show="! ready">{{ __('store.choose_options', ['names' => $optionChoices->keys()->implode(' / ')]) }}</p>
             </div>
         @endif
+        <template x-if="variant && variant.sku"><p class="mt-1 text-xs text-gray-400">{{ __('store.sku') }}: <span x-text="variant.sku"></span></p></template>
 
         @if ($available)
             <form id="addform" method="POST" action="{{ $store->storePath('/cart/add') }}" class="mt-5 flex items-center gap-3">@csrf
@@ -74,12 +75,14 @@
     <div class="mt-5 sf-card p-4 text-sm space-y-3">
         <p><span class="font-bold">{{ __('store.delivery') }}:</span>
             @if ($charge <= 0){{ __('store.free_delivery') }}
-            @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif</p>
+            @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif
+            @if ($deliveryEstimate) · {{ $deliveryEstimate }}@endif</p>
         @if ($methods->count())<p class="flex flex-wrap items-center gap-2"><span class="font-bold">{{ __('store.pay') }}:</span>
             @foreach ($methods as $m)<span class="sf-chip !py-0.5 !text-xs">{{ __('store.'.$m) }}</span>@endforeach</p>@endif
     </div>
 
     @if ($product->description)<div class="mt-5"><h2 class="font-bold uppercase text-sm tracking-wide mb-1">{{ __('store.description') }}</h2><p class="whitespace-pre-line text-gray-700">{{ $product->description }}</p></div>@endif
+    @include('storefront.product-templates._specs')
 
     <div class="mt-6 flex items-center flex-wrap gap-2 text-sm" x-data="{ ok: false }" aria-live="polite"><span class="font-bold mr-1">{{ __('store.share') }}:</span>
         <a class="sf-chip" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ rawurlencode($url) }}">Facebook</a>

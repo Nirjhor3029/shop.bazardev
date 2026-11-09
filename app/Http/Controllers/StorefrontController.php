@@ -34,4 +34,26 @@ class StorefrontController extends Controller
             'methods' => \App\Models\PaymentMethod::where('is_active', true)->pluck('type'),
         ]);
     }
+
+    /** Client-only wishlist page - the list itself lives in the viewer's localStorage, fetched via /cards. */
+    public function wishlist()
+    {
+        return view('storefront.wishlist', ['store' => app('currentStore')]);
+    }
+
+    /**
+     * Renders product cards for a given set of ids, in the order requested. Backs both the
+     * wishlist page and the "recently viewed" strip - both are pure client-side (localStorage)
+     * features with no server-side list of their own, so this is the only query either needs.
+     */
+    public function cardsByIds(\Illuminate\Http\Request $request)
+    {
+        $ids = collect(explode(',', (string) $request->query('ids')))
+            ->map(fn ($id) => (int) trim($id))->filter()->unique()->take(20)->values();
+
+        $products = Product::with('images')->where('is_active', true)->whereIn('id', $ids)->get()
+            ->sortBy(fn ($p) => $ids->search($p->id))->values();
+
+        return view('storefront.cards', ['store' => app('currentStore'), 'products' => $products]);
+    }
 }

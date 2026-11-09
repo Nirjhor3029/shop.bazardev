@@ -13,7 +13,7 @@ class Product extends Model
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:2', 'sale_price' => 'decimal:2', 'is_active' => 'boolean', 'is_sample' => 'boolean', 'is_featured' => 'boolean'];
+        return ['price' => 'decimal:2', 'sale_price' => 'decimal:2', 'is_active' => 'boolean', 'is_sample' => 'boolean', 'is_featured' => 'boolean', 'specs' => 'array'];
     }
 
     public function images(): \Illuminate\Database\Eloquent\Relations\HasMany

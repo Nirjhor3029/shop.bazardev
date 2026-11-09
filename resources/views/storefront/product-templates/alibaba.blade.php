@@ -27,7 +27,7 @@
             @endif
             <div class="relative flex-1">
                 @forelse ($product->images as $k => $img)
-                    <img x-show="i === {{ $k }}" src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover rounded-xl" @if (! $loop->first) loading="lazy" @endif>
+                    <img x-show="i === {{ $k }}" src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover rounded-xl sf-zoomable" @click="$store.zoom.open = true; $store.zoom.src = {{ \Illuminate\Support\Js::from($img->url()) }}; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}" @if (! $loop->first) loading="lazy" @endif>
                 @empty
                     <div class="aspect-square bg-gray-100 rounded-xl flex flex-col items-center justify-center text-gray-400 gap-1">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
@@ -65,6 +65,7 @@
                     <p class="text-sm text-amber-600" x-show="! ready">{{ __('store.choose_options', ['names' => $optionChoices->keys()->implode(' / ')]) }}</p>
                 </div>
             @endif
+            <template x-if="variant && variant.sku"><p class="mt-1 text-xs text-gray-400">{{ __('store.sku') }}: <span x-text="variant.sku"></span></p></template>
 
             {{-- supplier-contact-first CTA, Alibaba's B2B feel --}}
             @if ($wa)<a class="sf-btn sf-btn-wa mt-4 w-full" href="https://wa.me/{{ $wa }}?text={{ rawurlencode($available ? $waText : $waTextOos) }}" target="_blank" rel="noopener">{{ __('store.chat_to_order') }}</a>@endif
@@ -102,11 +103,13 @@
     </div>
     <div class="py-5" x-show="tab === 'overview'">
         @if ($product->description)<p class="whitespace-pre-line text-gray-700">{{ $product->description }}</p>@else<p class="text-gray-500">{{ $product->name }}</p>@endif
+        @include('storefront.product-templates._specs')
     </div>
     <div class="py-5 text-sm space-y-2" x-show="tab === 'shipping'">
         <p><span class="font-semibold">{{ __('store.delivery') }}:</span>
             @if ($charge <= 0){{ __('store.free_delivery') }}
-            @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif</p>
+            @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif
+            @if ($deliveryEstimate) · {{ $deliveryEstimate }}@endif</p>
         @if ($methods->count())<p class="flex flex-wrap items-center gap-2"><span class="font-semibold">{{ __('store.pay') }}:</span>
             @foreach ($methods as $m)<span class="sf-chip !py-0.5 !text-xs">{{ __('store.'.$m) }}</span>@endforeach</p>@endif
     </div>

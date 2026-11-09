@@ -22,7 +22,7 @@
             <template x-if="pct > 0"><span class="sf-ribbon" x-text="'-' + pct + '%'"></span></template>
             @if ($pct <= 0 && $isNew)<span class="sf-ribbon" style="background:#16a34a" x-show="! variant">{{ __('store.new') }}</span>@endif
             <div x-ref="g" @scroll.debounce.50ms="i = Math.round($refs.g.scrollLeft / $refs.g.clientWidth)" class="sf-gallery relative">
-                @forelse ($product->images as $img)<img src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover" @if (! $loop->first) loading="lazy" @endif>@empty
+                @forelse ($product->images as $img)<img src="{{ $img->url() }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover sf-zoomable" @click="$store.zoom.open = true; $store.zoom.src = {{ \Illuminate\Support\Js::from($img->url()) }}; $store.zoom.alt = {{ \Illuminate\Support\Js::from($product->name) }}" @if (! $loop->first) loading="lazy" @endif>@empty
                     <div class="aspect-square bg-gray-100 flex flex-col items-center justify-center text-gray-400 gap-1">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
                         <span class="text-xs">{{ __('store.no_image') }}</span>
@@ -37,6 +37,7 @@
 
         <h1 class="mt-5 text-xl font-bold leading-snug">{{ $product->name }}</h1>
         @if ($product->description)<div class="mt-4"><h2 class="font-semibold mb-1">{{ __('store.description') }}</h2><p class="whitespace-pre-line text-gray-700 text-sm">{{ $product->description }}</p></div>@endif
+        @include('storefront.product-templates._specs')
     </div>
 
     {{-- right: sticky buy-box, Daraz's signature layout --}}
@@ -64,6 +65,7 @@
                     <p class="text-sm text-amber-600" x-show="! ready">{{ __('store.choose_options', ['names' => $optionChoices->keys()->implode(' / ')]) }}</p>
                 </div>
             @endif
+            <template x-if="variant && variant.sku"><p class="text-xs text-gray-400">{{ __('store.sku') }}: <span x-text="variant.sku"></span></p></template>
 
             @if ($available)
                 <form id="addform" method="POST" action="{{ $store->storePath('/cart/add') }}" class="flex items-center gap-3">@csrf
@@ -83,7 +85,8 @@
             <div class="border-t pt-3 text-sm space-y-2">
                 <p><span class="font-semibold">{{ __('store.delivery') }}:</span>
                     @if ($charge <= 0){{ __('store.free_delivery') }}
-                    @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif</p>
+                    @else{{ __('store.delivery_charge', ['amount' => \App\Support\Fmt::money($charge)]) }}@if ($free > 0) · {{ __('store.free_over', ['amount' => \App\Support\Fmt::money($free)]) }}@endif @endif
+                    @if ($deliveryEstimate) · {{ $deliveryEstimate }}@endif</p>
                 @if ($methods->count())<p class="flex flex-wrap items-center gap-2"><span class="font-semibold">{{ __('store.pay') }}:</span>
                     @foreach ($methods as $m)<span class="sf-chip !py-0.5 !text-xs">{{ __('store.'.$m) }}</span>@endforeach</p>@endif
             </div>

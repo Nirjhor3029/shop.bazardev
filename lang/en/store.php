@@ -24,4 +24,7 @@ return [
     'wa_msg' => 'Hello, I want to buy: :name :url', 'wa_btn' => 'WhatsApp',
     'new' => 'New', 'trust_note' => 'Secure payment & fast delivery', 'featured' => 'Featured picks',
     'ask_wa' => 'Ask on WhatsApp when back in stock', 'wa_msg_oos' => 'Hello, I want to know when this will be back in stock: :name :url', 'no_image' => 'No image',
+    'specs' => 'Specifications', 'size_guide' => 'Size guide', 'close' => 'Close', 'sku' => 'SKU',
+    'recently_viewed' => 'Recently viewed', 'wishlist' => 'Wishlist', 'wishlist_add' => 'Add to wishlist',
+    'wishlist_remove' => 'Remove from wishlist', 'wishlist_empty' => 'Your wishlist is empty.',
 ];
