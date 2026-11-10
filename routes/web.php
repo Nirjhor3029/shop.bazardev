@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\DomainController as AdminDomainController;
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DemoLoginController;
+use App\Http\Controllers\DomainCheckController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\CheckoutController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\Seller\CategoryController;
 use App\Http\Controllers\Seller\LandingPageController as SellerLandingPageController;
 use App\Http\Controllers\Seller\OrderController;
 use App\Http\Controllers\Seller\SettingsController;
+use App\Http\Controllers\Seller\DomainController as SellerDomainController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\Seller\QuestionController as SellerQuestionController;
 use App\Http\Controllers\Seller\ReviewController as SellerReviewController;
@@ -59,6 +62,8 @@ Route::domain('{store}.'.config('shop.base_domain'))
 Route::get('/', [MarketController::class, 'home'])->name('home');
 Route::get('/search', [MarketController::class, 'search'])->middleware('throttle:60,1')->name('search');
 Route::get('/lang/{locale}', [MarketController::class, 'lang'])->name('lang');
+Route::get('/domains', [DomainCheckController::class, 'show'])->name('domains.show');
+Route::post('/domains/check', [DomainCheckController::class, 'check'])->middleware('throttle:10,1')->name('domains.check');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', fn () => redirect()->route('seller.dashboard'))->name('dashboard');
@@ -78,6 +83,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('reviews/{review}', [SellerReviewController::class, 'update'])->name('seller.reviews.update');
         Route::get('questions', [SellerQuestionController::class, 'index'])->name('seller.questions.index');
         Route::put('questions/{question}', [SellerQuestionController::class, 'update'])->name('seller.questions.update');
+        Route::get('domains', [SellerDomainController::class, 'index'])->name('seller.domains.index');
+        Route::delete('domains/{domainCheck}', [SellerDomainController::class, 'destroy'])->name('seller.domains.destroy');
         Route::get('appearance', [AppearanceController::class, 'edit'])->name('seller.appearance.edit');
         Route::post('appearance', [AppearanceController::class, 'update'])->name('seller.appearance.update');
         Route::resource('landing', SellerLandingPageController::class)->except('show')->names('seller.landing');
@@ -96,6 +103,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/stores/{store}/status', [AdminController::class, 'status'])->name('admin.stores.status');
     Route::post('/stores/{store}/plan', [AdminController::class, 'plan'])->name('admin.stores.plan');
     Route::resource('plans', PlanController::class)->except('show')->names('admin.plans');
+    Route::get('domains', [AdminDomainController::class, 'index'])->name('admin.domains.index');
 });
 
 Route::middleware('auth')->group(function () {

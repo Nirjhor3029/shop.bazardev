@@ -43,4 +43,10 @@ return [
     'auth_title' => 'Your shop, open for business',
     'auth_1' => 'Open a store in one click', 'auth_2' => 'Take bKash, Nagad, Rocket or cash on delivery', 'auth_3' => 'Manage orders from your phone',
     'auth_demo' => 'Just looking?',
+    'domains_title' => 'Domain name checker', 'domains_sub' => 'See if a .com, .net, .shop or other domain name is available to register.',
+    'domains_ph' => 'e.g. yourbrand.com', 'domains_btn' => 'Check',
+    'domains_available' => 'Available - nobody has registered this yet!', 'domains_taken' => 'Already registered.',
+    'domains_invalid' => "That doesn't look like a valid domain name.", 'domains_unknown' => "Couldn't check this one right now - try again shortly.",
+    'domains_order_hint' => 'Want to register this for your store? Contact us and we can help you set it up.',
+    'domains_other_ext' => 'Other extensions for this name', 'domains_free' => 'Available', 'domains_taken_short' => 'Taken',
 ];

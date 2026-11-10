@@ -3,6 +3,7 @@
     <div class="py-8"><div class="max-w-6xl mx-auto px-4 sm:px-6 space-y-4">
         @if (session('status'))<div class="bg-green-50 text-green-700 p-3 rounded">{{ session('status') }}</div>@endif
         <a href="{{ route('admin.plans.index') }}" class="text-sm text-indigo-600">Manage plans &rarr;</a>
+        <a href="{{ route('admin.domains.index') }}" class="text-sm text-indigo-600 ml-4">Domain leads &rarr;</a>
         <div class="bg-white shadow-sm sm:rounded-lg overflow-x-auto">
             <table class="min-w-full text-sm">
                 <thead class="text-left text-gray-500"><tr><th class="p-3">Store</th><th class="p-3">Owner</th><th class="p-3">Status</th><th class="p-3">Plan</th><th class="p-3">Products</th><th class="p-3">Orders</th><th class="p-3">Sales</th><th class="p-3"></th></tr></thead>
