@@ -42,8 +42,8 @@
             <div class="border-t pt-4"><h3 class="font-semibold">Domain</h3>
                 <p class="text-sm text-gray-600">Your store's address: <a href="{{ $store->url() }}" target="_blank" rel="noopener" class="text-indigo-600 underline">{{ $store->url() }}</a>
                     @unless ($plan->allow_subdomain)<span class="text-amber-600"> - upgrade for a branded subdomain ({{ $store->slug }}.{{ config('shop.base_domain') }})</span>@endunless</p>
-                <label class="block text-sm font-medium mt-3 text-gray-400">Custom domain (coming soon)</label>
-                <input type="text" disabled placeholder="www.yourshop.com" class="mt-1 border-gray-200 bg-gray-50 rounded-md w-full text-gray-400">
+                <p class="mt-3 text-sm"><a href="{{ route('seller.custom-domain.index') }}" class="text-indigo-600 underline">Manage custom domain</a>
+                    @unless ($plan->allow_custom_domain)<span class="text-amber-600"> - Pro plan feature</span>@endunless</p>
             </div>
             <x-primary-button>Save</x-primary-button>
         </form>

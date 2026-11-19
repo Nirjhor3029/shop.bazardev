@@ -1,9 +1,16 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\ProtectDemoSession;
+use App\Http\Middleware\ResolveStoreFromCustomDomain;
+use App\Http\Middleware\ResolveStoreFromHost;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SetSellerStore;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,16 +20,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'seller.store' => \App\Http\Middleware\SetSellerStore::class,
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
-            'store.host' => \App\Http\Middleware\ResolveStoreFromHost::class,
+            'seller.store' => SetSellerStore::class,
+            'admin' => EnsureAdmin::class,
+            'store.host' => ResolveStoreFromHost::class,
+            'store.custom-domain' => ResolveStoreFromCustomDomain::class,
         ]);
         // SSLCommerz posts these redirects/webhooks itself - it carries no Laravel CSRF token.
         $middleware->validateCsrfTokens(except: ['sslcommerz/*']);
-        $middleware->web(append: [\App\Http\Middleware\SetLocale::class, \App\Http\Middleware\ProtectDemoSession::class]);
+        $middleware->web(append: [SetLocale::class, ProtectDemoSession::class]);
         // The tenant must be known BEFORE route-model binding runs, or scoped lookups see no store.
-        $middleware->prependToPriorityList(before: \Illuminate\Routing\Middleware\SubstituteBindings::class, prepend: \App\Http\Middleware\SetSellerStore::class);
-        $middleware->prependToPriorityList(before: \Illuminate\Routing\Middleware\SubstituteBindings::class, prepend: \App\Http\Middleware\ResolveStoreFromHost::class);
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: SetSellerStore::class);
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: ResolveStoreFromHost::class);
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: ResolveStoreFromCustomDomain::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

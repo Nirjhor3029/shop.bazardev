@@ -2,6 +2,7 @@
 
 return [
     'base_domain' => env('SHOP_BASE_DOMAIN', 'shop.bazardev.com'),
+    'server_ip' => env('SHOP_SERVER_IP'), // shown to sellers as the A-record target for a custom domain
     'reserved' => [
         'www', 'app', 'admin', 'api', 'mail', 'shop', 'store', 'stores', 'blog', 'support', 'help', 'dashboard',
         'login', 'register', 'static', 'cdn', 'test', 'demo', 'bazardev', 'root', 'ftp', 'smtp', 'internal',

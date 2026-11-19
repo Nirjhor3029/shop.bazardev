@@ -1,30 +1,32 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DomainController as AdminDomainController;
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\DomainCheckController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\MarketController;
-use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ProductQuestionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\AppearanceController;
 use App\Http\Controllers\Seller\CategoryController;
+use App\Http\Controllers\Seller\CustomDomainController;
+use App\Http\Controllers\Seller\DomainController as SellerDomainController;
 use App\Http\Controllers\Seller\LandingPageController as SellerLandingPageController;
 use App\Http\Controllers\Seller\OrderController;
-use App\Http\Controllers\Seller\SettingsController;
-use App\Http\Controllers\Seller\DomainController as SellerDomainController;
 use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\Seller\QuestionController as SellerQuestionController;
 use App\Http\Controllers\Seller\ReviewController as SellerReviewController;
+use App\Http\Controllers\Seller\SettingsController;
 use App\Http\Controllers\SellerController;
-use App\Http\Controllers\ProductQuestionController;
-use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SslcommerzController;
 use App\Http\Controllers\StorefrontController;
 use App\Models\Store;
+use App\Models\StoreDomain;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -58,6 +60,16 @@ Route::domain('{store}.'.config('shop.base_domain'))
     ->where(['store' => '[a-z0-9-]{3,30}'])
     ->group($storefrontRoutes);
 
+// STOREFRONT: a seller's own verified custom domain (Pro plan, see docs/custom-domain-mapping.md).
+// Must be registered before every domain-less route below - otherwise a domain-less route like
+// "/" (MarketController::home) would match a custom-domain request first, since it has no host
+// restriction of its own. The `where` excludes shop.bazardev.com and its subdomains, so this can
+// never shadow the group above or the main-domain routes below, whatever order they're tried in.
+Route::domain('{customDomain}')
+    ->middleware('store.custom-domain')
+    ->where(['customDomain' => '(?!'.preg_quote(config('shop.base_domain'), '/').'$)(?!.*\.'.preg_quote(config('shop.base_domain'), '/').'$).+'])
+    ->group($storefrontRoutes);
+
 // MAIN DOMAIN: shop.bazardev.com
 Route::get('/', [MarketController::class, 'home'])->name('home');
 Route::get('/search', [MarketController::class, 'search'])->middleware('throttle:60,1')->name('search');
@@ -85,6 +97,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('questions/{question}', [SellerQuestionController::class, 'update'])->name('seller.questions.update');
         Route::get('domains', [SellerDomainController::class, 'index'])->name('seller.domains.index');
         Route::delete('domains/{domainCheck}', [SellerDomainController::class, 'destroy'])->name('seller.domains.destroy');
+        Route::get('custom-domain', [CustomDomainController::class, 'index'])->name('seller.custom-domain.index');
+        Route::post('custom-domain', [CustomDomainController::class, 'store'])->name('seller.custom-domain.store');
+        Route::post('custom-domain/{storeDomain}/recheck', [CustomDomainController::class, 'recheck'])->middleware('throttle:20,1')->name('seller.custom-domain.recheck');
+        Route::delete('custom-domain/{storeDomain}', [CustomDomainController::class, 'destroy'])->name('seller.custom-domain.destroy');
         Route::get('appearance', [AppearanceController::class, 'edit'])->name('seller.appearance.edit');
         Route::post('appearance', [AppearanceController::class, 'update'])->name('seller.appearance.update');
         Route::resource('landing', SellerLandingPageController::class)->except('show')->names('seller.landing');
@@ -124,6 +140,10 @@ Route::get('/internal/domain-check', function (Request $request) {
     }
     if (preg_match('/^([a-z0-9-]{3,30})\.'.preg_quote($base, '/').'$/', $domain, $m)
         && Store::where('slug', $m[1])->where('status', 'published')->exists()) {
+        return response('ok');
+    }
+    if (StoreDomain::where('domain', $domain)->where('status', 'verified')
+        ->whereHas('store', fn ($q) => $q->where('status', 'published'))->exists()) {
         return response('ok');
     }
     abort(404);

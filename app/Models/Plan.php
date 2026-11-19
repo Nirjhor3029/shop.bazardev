@@ -15,7 +15,7 @@ class Plan extends Model
         return [
             'price' => 'decimal:2',
             'landing_templates' => 'array', 'storefront_themes' => 'array', 'product_templates' => 'array',
-            'allow_subdomain' => 'boolean', 'allow_sslcommerz' => 'boolean', 'allow_pixel_tracking' => 'boolean',
+            'allow_subdomain' => 'boolean', 'allow_custom_domain' => 'boolean', 'allow_sslcommerz' => 'boolean', 'allow_pixel_tracking' => 'boolean',
             'remove_branding' => 'boolean', 'is_default' => 'boolean', 'is_active' => 'boolean',
         ];
     }

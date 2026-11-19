@@ -48,7 +48,7 @@
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="allow_sslcommerz" value="1" class="rounded" @checked(old('allow_sslcommerz', $plan->allow_sslcommerz))> SSLCommerz real-time payment gateway</label>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="allow_pixel_tracking" value="1" class="rounded" @checked(old('allow_pixel_tracking', $plan->allow_pixel_tracking))> Facebook Pixel + Conversions API tracking</label>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="remove_branding" value="1" class="rounded" @checked(old('remove_branding', $plan->remove_branding))> Remove "Made with Bazardev Shop" footer</label>
-                <label class="flex items-center gap-2 text-sm text-gray-400"><input type="checkbox" disabled class="rounded"> Custom domain (coming soon)</label>
+                <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="allow_custom_domain" value="1" class="rounded" @checked(old('allow_custom_domain', $plan->allow_custom_domain))> Custom domain (seller's own domain, e.g. yourshop.com)</label>
             </div>
 
             <div class="grid grid-cols-2 gap-4">

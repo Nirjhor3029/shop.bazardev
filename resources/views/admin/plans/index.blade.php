@@ -8,7 +8,7 @@
         </div>
         <div class="bg-white shadow-sm sm:rounded-lg overflow-x-auto">
             <table class="min-w-full text-sm">
-                <thead class="text-left text-gray-500"><tr><th class="p-3">Plan</th><th class="p-3">Price/mo</th><th class="p-3">Products</th><th class="p-3">Landing pages</th><th class="p-3">Subdomain</th><th class="p-3">SSLCommerz</th><th class="p-3">Pixel</th><th class="p-3">Stores</th><th class="p-3"></th></tr></thead>
+                <thead class="text-left text-gray-500"><tr><th class="p-3">Plan</th><th class="p-3">Price/mo</th><th class="p-3">Products</th><th class="p-3">Landing pages</th><th class="p-3">Subdomain</th><th class="p-3">Custom domain</th><th class="p-3">SSLCommerz</th><th class="p-3">Pixel</th><th class="p-3">Stores</th><th class="p-3"></th></tr></thead>
                 <tbody class="divide-y">
                 @foreach ($plans as $p)
                     <tr class="{{ ! $p->is_active ? 'opacity-50' : '' }}">
@@ -17,6 +17,7 @@
                         <td class="p-3">{{ $p->max_products ?? 'Unlimited' }}</td>
                         <td class="p-3">{{ $p->max_landing_pages ?? 'Unlimited' }}</td>
                         <td class="p-3">{{ $p->allow_subdomain ? 'Yes' : 'No' }}</td>
+                        <td class="p-3">{{ $p->allow_custom_domain ? 'Yes' : 'No' }}</td>
                         <td class="p-3">{{ $p->allow_sslcommerz ? 'Yes' : 'No' }}</td>
                         <td class="p-3">{{ $p->allow_pixel_tracking ? 'Yes' : 'No' }}</td>
                         <td class="p-3">{{ $p->stores()->count() }}</td>

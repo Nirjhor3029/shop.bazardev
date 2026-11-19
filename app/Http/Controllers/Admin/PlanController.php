@@ -82,6 +82,7 @@ class PlanController extends Controller
         $data['storefront_themes'] = $request->boolean('all_themes') ? null : ($data['storefront_themes'] ?? []);
         $data['product_templates'] = $request->boolean('all_product_templates') ? null : ($data['product_templates'] ?? []);
         $data['allow_subdomain'] = $request->boolean('allow_subdomain');
+        $data['allow_custom_domain'] = $request->boolean('allow_custom_domain');
         $data['allow_sslcommerz'] = $request->boolean('allow_sslcommerz');
         $data['allow_pixel_tracking'] = $request->boolean('allow_pixel_tracking');
         $data['remove_branding'] = $request->boolean('remove_branding');

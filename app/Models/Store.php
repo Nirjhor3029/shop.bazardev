@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Store extends Model
@@ -23,6 +24,11 @@ class Store extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    public function domains(): HasMany
+    {
+        return $this->hasMany(StoreDomain::class);
     }
 
     /** The plan in effect right now - falls back to the default plan if unset or expired, so a lapsed subscription just degrades to Free rather than breaking. */
